@@ -124,8 +124,11 @@ export interface PerformanceMetrics {
 // Settings
 // ============================================================
 
+export type AppTheme = 'dark' | 'light';
+
 /** User-configurable settings persisted to localStorage */
 export interface AppSettings {
+  theme: AppTheme;
   speechRate: number;
   verbosityMode: VerbosityMode;
   sonarEnabled: boolean;
@@ -139,6 +142,7 @@ export interface AppSettings {
 
 /** Default settings */
 export const DEFAULT_SETTINGS: AppSettings = {
+  theme: 'dark',
   speechRate: 1.1,
   verbosityMode: 'FULL',
   sonarEnabled: true,

@@ -1,14 +1,14 @@
 // ============================================================
 // VisionGuard — Settings Panel Component
 // ============================================================
-// High-contrast, accessibility-first settings modal.
-// Full screen or modal dialog with spoken confirmation of every change.
+// Accessible settings modal with dual-theme (Dark & Light) styling
+// and immediate spoken confirmation for every adjustment.
 
 import { useState, useEffect } from 'react';
 import { SettingsStore } from '../engines/SettingsStore';
 import { SpeechEngine } from '../engines/SpeechEngine';
 import { CalibrationManager, DEVICE_PRESETS } from '../engines/CalibrationManager';
-import type { AppSettings, HapticIntensity, VerbosityMode } from '../types';
+import type { AppSettings, AppTheme, HapticIntensity, VerbosityMode } from '../types';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -29,6 +29,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   if (!isOpen) return null;
 
+  const isDark = settings.theme === 'dark';
+
   const updateSetting = <K extends keyof AppSettings>(
     key: K,
     value: AppSettings[K],
@@ -40,6 +42,14 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     }
   };
 
+  const handleThemeChange = (newTheme: AppTheme) => {
+    updateSetting(
+      'theme',
+      newTheme,
+      `Theme set to ${newTheme === 'dark' ? 'dark' : 'light'} mode`
+    );
+  };
+
   const handleSpeechRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rate = parseFloat(e.target.value);
     updateSetting('speechRate', rate, `Speech rate ${rate.toFixed(1)}`);
@@ -47,7 +57,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   const handleVerbosityMode = (mode: VerbosityMode) => {
     const names: Record<VerbosityMode, string> = {
-      FULL: 'Full alert mode',
+      FULL: 'Full audio mode',
       VOICE_ONLY: 'Voice only mode',
       SONAR_ONLY: 'Sonar only mode',
       EMERGENCY_ONLY: 'Emergency only mode',
@@ -73,7 +83,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     updateSetting(
       'ambientStatusInterval',
       sec,
-      `Ambient status every ${sec} seconds`
+      `Clear path interval every ${sec} seconds`
     );
   };
 
@@ -100,33 +110,132 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="settings-title"
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/95 text-white p-4 sm:p-6 backdrop-blur-md flex flex-col justify-between"
+      className={`fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6 backdrop-blur-xl flex flex-col justify-between transition-colors duration-200 ${
+        isDark
+          ? 'bg-[#090A0F]/95 text-slate-100'
+          : 'bg-slate-50/95 text-slate-900'
+      }`}
     >
-      <div className="max-w-2xl w-full mx-auto space-y-8 pb-20">
+      <div className="max-w-2xl w-full mx-auto space-y-6 pb-20">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/20 pb-4 pt-2">
-          <h2 id="settings-title" className="text-3xl font-extrabold text-[#FFFF00] flex items-center gap-2">
-            <span>⚙️</span>
-            <span>Settings</span>
-          </h2>
+        <div
+          className={`flex items-center justify-between border-b pb-4 pt-2 ${
+            isDark ? 'border-slate-800' : 'border-slate-200'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">⚙️</span>
+            <div>
+              <h2
+                id="settings-title"
+                className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${
+                  isDark ? 'text-amber-400' : 'text-blue-600'
+                }`}
+              >
+                Settings & Preferences
+              </h2>
+              <p
+                className={`text-xs ${
+                  isDark ? 'text-slate-400' : 'text-slate-500'
+                }`}
+              >
+                Customize spatial audio, speech rate, haptics, and appearance
+              </p>
+            </div>
+          </div>
           <button
             onClick={handleClose}
-            className="px-5 py-3 bg-[#FFFF00] text-black font-bold text-lg rounded-xl active:bg-yellow-400 focus:ring-4 focus:ring-yellow-300 min-h-[48px]"
+            className={`px-4 py-2 font-bold rounded-xl shadow-sm transition-transform active:scale-95 ${
+              isDark
+                ? 'bg-amber-400 hover:bg-amber-300 text-slate-950'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
             aria-label="Close settings"
           >
             Done
           </button>
         </div>
 
-        {/* Section 1: Alert Mode */}
-        <section className="space-y-3">
-          <h3 className="text-xl font-bold text-white tracking-wide">
+        {/* Section 1: Appearance & Theme Switcher */}
+        <section
+          className={`p-4 sm:p-5 rounded-2xl border transition-colors ${
+            isDark
+              ? 'bg-slate-900/80 border-slate-800'
+              : 'bg-white border-slate-200 shadow-sm'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-base sm:text-lg font-bold">
+                Color Theme
+              </h3>
+              <p
+                className={`text-xs ${
+                  isDark ? 'text-slate-400' : 'text-slate-500'
+                }`}
+              >
+                Switch between high-contrast dark and bright clean light themes.
+              </p>
+            </div>
+            <span className="text-2xl">{isDark ? '🌙' : '☀️'}</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => handleThemeChange('dark')}
+              className={`p-3.5 rounded-xl font-bold text-sm border-2 flex items-center justify-between transition-all ${
+                isDark
+                  ? 'bg-slate-800 text-amber-300 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+                  : 'bg-slate-100 text-slate-600 border-slate-200 hover:border-slate-400'
+              }`}
+              aria-pressed={isDark}
+            >
+              <div className="flex items-center gap-2">
+                <span>🌙</span>
+                <span>Dark Obsidian</span>
+              </div>
+              {isDark && <span>✓</span>}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleThemeChange('light')}
+              className={`p-3.5 rounded-xl font-bold text-sm border-2 flex items-center justify-between transition-all ${
+                !isDark
+                  ? 'bg-blue-50 text-blue-700 border-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.2)]'
+                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+              }`}
+              aria-pressed={!isDark}
+            >
+              <div className="flex items-center gap-2">
+                <span>☀️</span>
+                <span>Light Porcelain</span>
+              </div>
+              {!isDark && <span>✓</span>}
+            </button>
+          </div>
+        </section>
+
+        {/* Section 2: Feedback Mode */}
+        <section
+          className={`p-4 sm:p-5 rounded-2xl border transition-colors ${
+            isDark
+              ? 'bg-slate-900/80 border-slate-800'
+              : 'bg-white border-slate-200 shadow-sm'
+          }`}
+        >
+          <h3 className="text-base sm:text-lg font-bold mb-1">
             Feedback Mode
           </h3>
-          <p className="text-sm text-gray-300">
-            Control which alert modalities are active during navigation.
+          <p
+            className={`text-xs mb-3 ${
+              isDark ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
+            Adjust which senses are engaged during your commute.
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             {(
               [
                 ['FULL', '🔊 Full (Voice & Sonar)'],
@@ -139,29 +248,44 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               return (
                 <button
                   key={mode}
+                  type="button"
                   onClick={() => handleVerbosityMode(mode)}
-                  className={`p-4 rounded-xl text-left font-bold text-base transition-colors border-2 min-h-[56px] flex items-center justify-between ${
+                  className={`p-3 rounded-xl text-left font-bold text-xs sm:text-sm transition-all border-2 flex items-center justify-between ${
                     active
-                      ? 'bg-[#FFFF00] text-black border-[#FFFF00]'
-                      : 'bg-zinc-900 text-white border-zinc-700 hover:border-zinc-500'
+                      ? isDark
+                        ? 'bg-amber-400 text-slate-950 border-amber-400 font-extrabold shadow-sm'
+                        : 'bg-blue-600 text-white border-blue-600 font-extrabold shadow-sm'
+                      : isDark
+                        ? 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                   }`}
                   aria-pressed={active}
                 >
                   <span>{label}</span>
-                  {active && <span className="text-lg">✓</span>}
+                  {active && <span>✓</span>}
                 </button>
               );
             })}
           </div>
         </section>
 
-        {/* Section 2: Speech Rate */}
-        <section className="space-y-3 bg-zinc-900/80 p-5 rounded-2xl border border-zinc-800">
-          <div className="flex justify-between items-center">
-            <label htmlFor="speech-rate-slider" className="text-lg font-bold">
-              Speech Rate
+        {/* Section 3: Speech Rate */}
+        <section
+          className={`p-4 sm:p-5 rounded-2xl border transition-colors ${
+            isDark
+              ? 'bg-slate-900/80 border-slate-800'
+              : 'bg-white border-slate-200 shadow-sm'
+          }`}
+        >
+          <div className="flex justify-between items-center mb-2">
+            <label htmlFor="speech-rate-slider" className="text-sm sm:text-base font-bold">
+              Voice Announcement Speed
             </label>
-            <span className="text-[#FFFF00] font-mono text-lg font-bold">
+            <span
+              className={`font-mono text-sm font-bold ${
+                isDark ? 'text-amber-400' : 'text-blue-600'
+              }`}
+            >
               {settings.speechRate.toFixed(1)}x
             </span>
           </div>
@@ -173,24 +297,42 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             step="0.1"
             value={settings.speechRate}
             onChange={handleSpeechRateChange}
-            className="w-full h-4 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-[#FFFF00]"
+            className={`w-full h-3 rounded-lg appearance-none cursor-pointer ${
+              isDark ? 'bg-slate-800' : 'bg-slate-200'
+            }`}
             aria-valuemin={0.8}
             aria-valuemax={1.4}
             aria-valuenow={settings.speechRate}
             aria-valuetext={`${settings.speechRate.toFixed(1)} times speed`}
           />
-          <div className="flex justify-between text-xs text-zinc-400 font-mono">
+          <div
+            className={`flex justify-between text-[11px] font-mono mt-1 ${
+              isDark ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
             <span>0.8x (Slower)</span>
             <span>1.1x (Standard)</span>
             <span>1.4x (Fast)</span>
           </div>
         </section>
 
-        {/* Section 3: Haptic Feedback */}
-        <section className="space-y-3">
-          <h3 className="text-xl font-bold">Vibration Haptics</h3>
-          <p className="text-sm text-gray-300">
-            Directional pulse strength for obstacle warnings.
+        {/* Section 4: Haptic Feedback */}
+        <section
+          className={`p-4 sm:p-5 rounded-2xl border transition-colors ${
+            isDark
+              ? 'bg-slate-900/80 border-slate-800'
+              : 'bg-white border-slate-200 shadow-sm'
+          }`}
+        >
+          <h3 className="text-base sm:text-lg font-bold mb-1">
+            Vibration Intensity
+          </h3>
+          <p
+            className={`text-xs mb-3 ${
+              isDark ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
+            Directional haptic strength for left, center, and right obstacles.
           </p>
           <div className="grid grid-cols-4 gap-2">
             {(['OFF', 'LOW', 'NORMAL', 'HIGH'] as HapticIntensity[]).map((level) => {
@@ -198,11 +340,16 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               return (
                 <button
                   key={level}
+                  type="button"
                   onClick={() => handleHapticIntensity(level)}
-                  className={`py-3 px-2 rounded-xl text-center font-bold text-sm border-2 min-h-[50px] ${
+                  className={`py-2.5 px-1 rounded-xl text-center font-bold text-xs sm:text-sm border-2 transition-all ${
                     active
-                      ? 'bg-[#FFFF00] text-black border-[#FFFF00]'
-                      : 'bg-zinc-900 text-white border-zinc-700'
+                      ? isDark
+                        ? 'bg-amber-400 text-slate-950 border-amber-400 font-extrabold'
+                        : 'bg-blue-600 text-white border-blue-600 font-extrabold'
+                      : isDark
+                        ? 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                   }`}
                   aria-pressed={active}
                 >
@@ -213,20 +360,36 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </div>
         </section>
 
-        {/* Section 4: Detection & Camera Calibration */}
-        <section className="space-y-4 bg-zinc-900/80 p-5 rounded-2xl border border-zinc-800">
-          <h3 className="text-xl font-bold text-[#FFFF00]">Camera & Detection</h3>
+        {/* Section 5: Camera & Detection Calibration */}
+        <section
+          className={`p-4 sm:p-5 rounded-2xl border space-y-4 transition-colors ${
+            isDark
+              ? 'bg-slate-900/80 border-slate-800'
+              : 'bg-white border-slate-200 shadow-sm'
+          }`}
+        >
+          <h3
+            className={`text-base sm:text-lg font-bold ${
+              isDark ? 'text-amber-400' : 'text-blue-600'
+            }`}
+          >
+            Camera Sensitivity & Diagnostics
+          </h3>
 
-          {/* Device FOV Preset */}
-          <div className="space-y-2">
-            <label htmlFor="device-preset-select" className="block text-sm font-semibold">
-              Camera Lens Preset
+          {/* Camera Lens Preset */}
+          <div className="space-y-1">
+            <label htmlFor="device-preset-select" className="block text-xs sm:text-sm font-semibold">
+              Lens Field-of-View Preset
             </label>
             <select
               id="device-preset-select"
               value={devicePreset}
               onChange={(e) => handlePresetChange(e.target.value)}
-              className="w-full bg-zinc-800 text-white p-3 rounded-xl border border-zinc-700 text-base font-semibold focus:outline-none focus:border-[#FFFF00] min-h-[48px]"
+              className={`w-full p-2.5 rounded-xl border text-xs sm:text-sm font-semibold focus:outline-none ${
+                isDark
+                  ? 'bg-slate-950 border-slate-700 text-slate-200 focus:border-amber-400'
+                  : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-blue-600'
+              }`}
             >
               {DEVICE_PRESETS.map((preset) => (
                 <option key={preset.name} value={preset.name}>
@@ -236,13 +399,13 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </select>
           </div>
 
-          {/* Confidence Slider */}
-          <div className="space-y-2 pt-2">
-            <div className="flex justify-between items-center">
-              <label htmlFor="confidence-slider" className="text-sm font-semibold">
-                Detection Confidence Threshold
+          {/* Detection Confidence Threshold */}
+          <div className="space-y-1 pt-1">
+            <div className="flex justify-between items-center text-xs sm:text-sm font-semibold">
+              <label htmlFor="confidence-slider">
+                Detection Confidence Gate
               </label>
-              <span className="font-mono text-[#FFFF00]">
+              <span className={`font-mono ${isDark ? 'text-amber-400' : 'text-blue-600'}`}>
                 {Math.round(settings.confidenceThreshold * 100)}%
               </span>
             </div>
@@ -254,17 +417,19 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               step="0.05"
               value={settings.confidenceThreshold}
               onChange={handleConfidenceChange}
-              className="w-full h-3 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-[#FFFF00]"
+              className={`w-full h-2.5 rounded-lg appearance-none cursor-pointer ${
+                isDark ? 'bg-slate-800' : 'bg-slate-200'
+              }`}
             />
           </div>
 
-          {/* Ambient Status Interval */}
-          <div className="space-y-2 pt-2">
-            <div className="flex justify-between items-center">
-              <label htmlFor="ambient-slider" className="text-sm font-semibold">
+          {/* Clear Path Announcement Interval */}
+          <div className="space-y-1 pt-1">
+            <div className="flex justify-between items-center text-xs sm:text-sm font-semibold">
+              <label htmlFor="ambient-slider">
                 Clear Path Announcement Interval
               </label>
-              <span className="font-mono text-[#FFFF00]">
+              <span className={`font-mono ${isDark ? 'text-amber-400' : 'text-blue-600'}`}>
                 {settings.ambientStatusInterval}s
               </span>
             </div>
@@ -276,19 +441,32 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               step="5"
               value={settings.ambientStatusInterval}
               onChange={handleAmbientInterval}
-              className="w-full h-3 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-[#FFFF00]"
+              className={`w-full h-2.5 rounded-lg appearance-none cursor-pointer ${
+                isDark ? 'bg-slate-800' : 'bg-slate-200'
+              }`}
             />
           </div>
 
           {/* Debug Visuals Toggle */}
-          <div className="pt-3 border-t border-zinc-800 flex items-center justify-between">
+          <div
+            className={`pt-3 border-t flex items-center justify-between ${
+              isDark ? 'border-slate-800' : 'border-slate-200'
+            }`}
+          >
             <div>
-              <span className="font-bold block">Developer Visual Overlay</span>
-              <span className="text-xs text-zinc-400">
-                Shows bounding boxes, tracking IDs, and spatial zones on screen.
+              <span className="font-bold text-xs sm:text-sm block">
+                Visual Bounding Boxes & Zones
+              </span>
+              <span
+                className={`text-[11px] ${
+                  isDark ? 'text-slate-400' : 'text-slate-500'
+                }`}
+              >
+                Displays spatial tracking IDs and zone dividers on screen.
               </span>
             </div>
             <button
+              type="button"
               onClick={() =>
                 updateSetting(
                   'showDebugOverlay',
@@ -296,10 +474,14 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   `Debug overlay ${!settings.showDebugOverlay ? 'enabled' : 'disabled'}`
                 )
               }
-              className={`px-4 py-2 rounded-xl font-bold border-2 min-h-[44px] ${
+              className={`px-3 py-1.5 rounded-xl font-bold text-xs border transition-colors ${
                 settings.showDebugOverlay
-                  ? 'bg-green-500 text-black border-green-500'
-                  : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                  ? isDark
+                    ? 'bg-emerald-500 text-slate-950 border-emerald-400'
+                    : 'bg-emerald-600 text-white border-emerald-600'
+                  : isDark
+                    ? 'bg-slate-950 text-slate-400 border-slate-800'
+                    : 'bg-slate-100 text-slate-500 border-slate-300'
               }`}
               aria-pressed={settings.showDebugOverlay}
             >
@@ -308,17 +490,27 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </div>
         </section>
 
-        {/* Section 5: Reset & Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <button
+            type="button"
             onClick={handleReset}
-            className="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold rounded-xl border border-zinc-600 active:bg-zinc-600 min-h-[50px]"
+            className={`flex-1 py-3 px-4 font-bold rounded-xl border text-xs sm:text-sm transition-colors ${
+              isDark
+                ? 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800'
+                : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
+            }`}
           >
             Reset All Defaults
           </button>
           <button
+            type="button"
             onClick={handleClose}
-            className="flex-1 py-4 bg-[#FFFF00] text-black font-extrabold rounded-xl active:bg-yellow-400 min-h-[50px] text-lg"
+            className={`flex-1 py-3 px-4 font-extrabold rounded-xl text-sm transition-all shadow-md ${
+              isDark
+                ? 'bg-amber-400 hover:bg-amber-300 text-slate-950'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
           >
             Save & Exit
           </button>

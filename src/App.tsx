@@ -35,6 +35,7 @@ import type {
   TrackedObject,
   PerformanceMetrics,
   AlertLogEntry,
+  AppTheme,
 } from './types';
 
 export function App() {
@@ -46,6 +47,11 @@ export function App() {
     !SafetyManager.needsBriefing()
   );
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Theme state
+  const [theme, setTheme] = useState<AppTheme>(() =>
+    SettingsStore.get('theme') || 'dark'
+  );
 
   // Operational states
   const [scanningState, setScanningState] = useState<ScanningState>('IDLE');
@@ -72,9 +78,21 @@ export function App() {
   const { isOn: torchOn, isAvailable: torchAvailable, toggle: toggleTorch } =
     useTorch(stream);
 
+  // Apply theme to document element
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    }
+  }, [theme]);
+
   // Sync settings updates
   useEffect(() => {
     return SettingsStore.subscribe((newSettings) => {
+      setTheme(newSettings.theme);
       setVerbosityMode(newSettings.verbosityMode);
       setShowDebug(newSettings.showDebugOverlay);
       SpeechEngine.setRate(newSettings.speechRate);
@@ -315,8 +333,19 @@ export function App() {
     ]
   );
 
+  // Toggle light/dark theme
+  const toggleTheme = useCallback(() => {
+    const nextTheme: AppTheme = theme === 'dark' ? 'light' : 'dark';
+    SettingsStore.set({ theme: nextTheme });
+    SpeechEngine.speak(`Switched to ${nextTheme} mode`, 'HIGH');
+  }, [theme]);
+
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-black select-none">
+    <main
+      className={`relative w-screen h-screen overflow-hidden select-none transition-colors duration-200 ${
+        theme === 'dark' ? 'bg-[#090A0F]' : 'bg-slate-50'
+      }`}
+    >
       {/* 1. Camera Feed & Debug Visuals */}
       <CameraFeed
         videoRef={videoRef}
@@ -325,8 +354,9 @@ export function App() {
         trackedObjects={trackedObjects}
       />
 
-      {/* 2. HUD Overlay (Non-interactive visual stats) */}
+      {/* 2. HUD Overlay (Non-interactive visual stats with quick controls) */}
       <HUDOverlay
+        theme={theme}
         scanningState={scanningState}
         hazardStatus={hazardStatus}
         verbosityMode={verbosityMode}
@@ -334,11 +364,14 @@ export function App() {
         alertLog={alertLog}
         showDebug={showDebug}
         torchActive={torchOn}
+        onToggleTheme={toggleTheme}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       {/* 3. Full-Screen Gesture Interaction Surface */}
       {unlocked && (
         <GesturePad
+          theme={theme}
           onGesture={handleGesture}
           disabled={settingsOpen || !safetyBriefingSeen}
         />
@@ -347,6 +380,7 @@ export function App() {
       {/* 4. Safety Notice Briefing (First Run Modal) */}
       {unlocked && !safetyBriefingSeen && (
         <SafetyBriefing
+          theme={theme}
           onDismiss={() => {
             setSafetyBriefingSeen(true);
             SpeechEngine.speak('Safety acknowledged. VisionGuard active.', 'HIGH');
@@ -363,6 +397,8 @@ export function App() {
       {/* 6. Initial User Gesture / Audio Unlock Overlay */}
       {!unlocked && (
         <AudioUnlockModal
+          theme={theme}
+          onToggleTheme={toggleTheme}
           onUnlock={handleUnlock}
           isInitializing={isInitializing}
           initProgress={initProgress}
