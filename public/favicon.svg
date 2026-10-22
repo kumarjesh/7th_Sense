@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <rect width="512" height="512" rx="128" fill="#000000"/>
+  <!-- Outer sonar radar ring -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="#FFFF00" stroke-width="12" stroke-opacity="0.3" stroke-dasharray="24 16"/>
+  <!-- Middle sonar radar ring -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#FFFF00" stroke-width="16" stroke-opacity="0.6"/>
+  <!-- Inner spatial pulse ring -->
+  <circle cx="256" cy="256" r="110" fill="none" stroke="#FFFF00" stroke-width="20" stroke-opacity="0.9"/>
+  <!-- Center Eye / Pupil / Lens -->
+  <ellipse cx="256" cy="256" rx="80" ry="50" fill="#FFFF00"/>
+  <circle cx="256" cy="256" r="32" fill="#000000"/>
+  <circle cx="266" cy="246" r="12" fill="#FFFFFF"/>
+  <!-- Spatial navigation directional beams -->
+  <line x1="256" y1="40" x2="256" y2="90" stroke="#FF3B30" stroke-width="14" stroke-linecap="round"/>
+  <line x1="90" y1="120" x2="130" y2="155" stroke="#FFFF00" stroke-width="12" stroke-linecap="round"/>
+  <line x1="422" y1="120" x2="382" y2="155" stroke="#FFFF00" stroke-width="12" stroke-linecap="round"/>
+</svg>
