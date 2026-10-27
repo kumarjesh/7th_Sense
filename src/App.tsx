@@ -470,7 +470,7 @@ export function App() {
           handleDescribeScene();
           break;
         case 'two-finger-double-tap':
-          announceStatus();
+          handleTriggerCurrency();
           break;
         case 'two-finger-swipe-up':
           handleToggleTextReader();
@@ -512,6 +512,7 @@ export function App() {
       handleToggleTextReader,
       handleToggleLightDetector,
       handleCycleFindTarget,
+      handleTriggerCurrency,
       emergencyPause,
     ]
   );
