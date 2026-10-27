@@ -25,12 +25,17 @@ class GeminiVisionEngineImpl {
     return fromEnv || '';
   }
 
-  /** Get active model from SettingsStore or environment variables */
+  /** Get active model from SettingsStore or environment variables (defaults to gemini-2.5-flash) */
   private getModel(): string {
-    const fromStore = SettingsStore.get('geminiModel')?.trim();
-    if (fromStore) return fromStore;
-    const fromEnv = (import.meta.env.VITE_GEMINI_MODEL as string | undefined)?.trim();
-    return fromEnv || 'gemini-2.0-flash';
+    let model: string | undefined = SettingsStore.get('geminiModel')?.trim();
+    if (!model) {
+      model = (import.meta.env.VITE_GEMINI_MODEL as string | undefined)?.trim();
+    }
+    // Auto-migrate legacy 2.0-flash to production 2.5-flash
+    if (!model || model === 'gemini-2.0-flash') {
+      return 'gemini-2.5-flash';
+    }
+    return model;
   }
 
   /** Check if currently running a cloud analysis */
@@ -247,7 +252,7 @@ class GeminiVisionEngineImpl {
     }
 
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey.trim()}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey.trim()}`;
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

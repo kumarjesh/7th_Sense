@@ -39,40 +39,57 @@ export function useGestures(
   elementRef: React.RefObject<HTMLElement | null>,
   callbacks: GestureCallbacks
 ) {
-  const touchStart = useRef<{ x: number; y: number; time: number; fingers: number } | null>(null);
-  const tapCount = useRef(0);
-  const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastFingerCount = useRef(0);
+  // Session tracking: from first finger down until ALL fingers lifted
+  const sessionRef = useRef<{
+    startX: number;
+    startY: number;
+    startTime: number;
+    maxFingers: number;
+    longPressFired: boolean;
+  } | null>(null);
+
+  // Tap tracking across multiple lift cycles
+  const recentTapRef = useRef<{ time: number; fingers: number } | null>(null);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { onGesture } = callbacks;
 
   const handleTouchStart = useCallback(
     (e: TouchEvent) => {
       e.preventDefault();
-      const touch = e.touches[0];
-      const fingerCount = e.touches.length;
-      lastFingerCount.current = fingerCount;
+      const currentTouches = e.touches.length;
 
-      touchStart.current = {
-        x: touch.clientX,
-        y: touch.clientY,
-        time: Date.now(),
-        fingers: fingerCount,
-      };
+      if (!sessionRef.current) {
+        // Start of a brand new gesture session (all fingers were previously up)
+        const primaryTouch = e.touches[0];
+        sessionRef.current = {
+          startX: primaryTouch.clientX,
+          startY: primaryTouch.clientY,
+          startTime: Date.now(),
+          maxFingers: currentTouches,
+          longPressFired: false,
+        };
 
-      // Start long-press timer
-      if (longPressTimer.current) clearTimeout(longPressTimer.current);
-      longPressTimer.current = setTimeout(() => {
-        if (touchStart.current) {
-          if (fingerCount >= 2) {
-            onGesture('two-finger-long-press');
-          } else {
-            onGesture('long-press');
+        // Start long-press detection
+        if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = setTimeout(() => {
+          if (sessionRef.current && !sessionRef.current.longPressFired) {
+            sessionRef.current.longPressFired = true;
+            if (sessionRef.current.maxFingers >= 2) {
+              onGesture('two-finger-long-press');
+            } else {
+              onGesture('long-press');
+            }
           }
-          touchStart.current = null; // Consumed
-        }
-      }, LONG_PRESS_DELAY);
+        }, LONG_PRESS_DELAY);
+      } else {
+        // Additional finger touched down during existing session
+        sessionRef.current.maxFingers = Math.max(
+          sessionRef.current.maxFingers,
+          currentTouches
+        );
+      }
     },
     [onGesture]
   );
@@ -80,29 +97,42 @@ export function useGestures(
   const handleTouchEnd = useCallback(
     (e: TouchEvent) => {
       e.preventDefault();
-      if (longPressTimer.current) {
-        clearTimeout(longPressTimer.current);
-        longPressTimer.current = null;
+
+      // Only evaluate gesture when ALL fingers have lifted from the screen
+      if (e.touches.length > 0) {
+        return;
       }
 
-      if (!touchStart.current) return;
+      // Cancel long press timer
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
 
-      const touch = e.changedTouches[0];
-      const dx = touch.clientX - touchStart.current.x;
-      const dy = touch.clientY - touchStart.current.y;
-      const elapsed = Date.now() - touchStart.current.time;
-      const fingers = lastFingerCount.current;
+      const session = sessionRef.current;
+      sessionRef.current = null;
+      if (!session) return;
+
+      // If long press already fired, consume and exit
+      if (session.longPressFired) {
+        recentTapRef.current = null;
+        if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+        return;
+      }
+
+      // Calculate swipe displacement using the last released touch
+      const lastTouch = e.changedTouches[0];
+      const dx = lastTouch ? lastTouch.clientX - session.startX : 0;
+      const dy = lastTouch ? lastTouch.clientY - session.startY : 0;
       const distance = Math.sqrt(dx * dx + dy * dy);
+      const fingers = session.maxFingers;
 
-      touchStart.current = null;
-
-      // Classify gesture
-      if (elapsed > LONG_PRESS_DELAY) {
-        return; // Already handled by long-press timer
-      }
-
+      // 1. Swipe Detection
       if (distance > SWIPE_THRESHOLD) {
-        // Multi-finger or single-finger swipe
+        // Cancel pending tap timers
+        if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+        recentTapRef.current = null;
+
         const isHorizontal = Math.abs(dx) > Math.abs(dy);
         if (fingers >= 2) {
           if (isHorizontal) {
@@ -120,35 +150,46 @@ export function useGestures(
         return;
       }
 
-      // Three-finger tap
+      // 2. Three-Finger Tap
       if (fingers >= 3) {
+        if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+        recentTapRef.current = null;
         onGesture('three-finger-tap');
-        tapCount.current = 0;
-        if (tapTimer.current) clearTimeout(tapTimer.current);
         return;
       }
 
-      // Tap / double-tap detection
-      tapCount.current++;
+      // 3. Double-Tap vs Single-Tap Detection
+      const now = Date.now();
+      const prevTap = recentTapRef.current;
 
-      if (tapTimer.current) clearTimeout(tapTimer.current);
+      if (prevTap && now - prevTap.time < DOUBLE_TAP_DELAY) {
+        // Second tap received within DOUBLE_TAP_DELAY
+        if (tapTimerRef.current) {
+          clearTimeout(tapTimerRef.current);
+          tapTimerRef.current = null;
+        }
+        recentTapRef.current = null;
 
-      tapTimer.current = setTimeout(() => {
-        if (fingers >= 2) {
-          if (tapCount.current >= 2) {
-            onGesture('two-finger-double-tap');
-          } else {
-            onGesture('two-finger-tap');
-          }
+        // If EITHER tap was multi-finger, treat as two-finger double-tap
+        if (fingers >= 2 || prevTap.fingers >= 2) {
+          onGesture('two-finger-double-tap');
         } else {
-          if (tapCount.current >= 2) {
-            onGesture('double-tap');
+          onGesture('double-tap');
+        }
+      } else {
+        // First tap: buffer it and wait for potential double-tap
+        recentTapRef.current = { time: now, fingers };
+
+        if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+        tapTimerRef.current = setTimeout(() => {
+          recentTapRef.current = null;
+          if (fingers >= 2) {
+            onGesture('two-finger-tap');
           } else {
             onGesture('tap');
           }
-        }
-        tapCount.current = 0;
-      }, DOUBLE_TAP_DELAY);
+        }, DOUBLE_TAP_DELAY);
+      }
     },
     [onGesture]
   );
@@ -169,8 +210,8 @@ export function useGestures(
       el.removeEventListener('touchstart', handleTouchStart);
       el.removeEventListener('touchend', handleTouchEnd);
       el.removeEventListener('touchmove', handleTouchMove);
-      if (tapTimer.current) clearTimeout(tapTimer.current);
-      if (longPressTimer.current) clearTimeout(longPressTimer.current);
+      if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
     };
   }, [elementRef, handleTouchStart, handleTouchEnd, handleTouchMove]);
 }

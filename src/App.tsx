@@ -76,6 +76,7 @@ export function App() {
   );
   const [lightLuminance, setLightLuminance] = useState<number>(0);
   const [isAnalyzingScene, setIsAnalyzingScene] = useState<boolean>(false);
+  const [isReadingCurrency, setIsReadingCurrency] = useState<boolean>(false);
 
   // Detection & metrics for HUD / Debug canvas
   const [rawDetections, setRawDetections] = useState<RawDetection[]>([]);
@@ -419,20 +420,30 @@ export function App() {
 
   // 5. Read Currency
   const handleTriggerCurrency = useCallback(async () => {
+    if (isReadingCurrency) return;
     const frame = captureFrame(1024, 0.85);
     if (!frame) {
       SpeechEngine.speak('Camera not ready for currency reading.', 'HIGH');
       return;
     }
 
+    setIsReadingCurrency(true);
     SpeechEngine.speak('Reading currency...', 'HIGH');
     try {
       const result = await GeminiVisionEngine.readCurrency(frame);
       SpeechEngine.speak(result, 'CRITICAL_INTERRUPT');
-    } catch {
-      SpeechEngine.speak('Failed to identify currency.', 'HIGH');
+    } catch (err: unknown) {
+      console.error('Currency reader error:', err);
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('NO_API_KEY')) {
+        SpeechEngine.speak('Google API key not configured. Add it in Settings or env file.', 'HIGH');
+      } else {
+        SpeechEngine.speak('Currency reading failed. Please check internet connection.', 'HIGH');
+      }
+    } finally {
+      setIsReadingCurrency(false);
     }
-  }, [captureFrame]);
+  }, [captureFrame, isReadingCurrency]);
 
   // Toggle light/dark theme
   const toggleTheme = useCallback(() => {
@@ -545,6 +556,7 @@ export function App() {
         findTarget={findTarget}
         lightLuminancePercent={lightLuminance}
         isAnalyzingScene={isAnalyzingScene}
+        isReadingCurrency={isReadingCurrency}
         onToggleTheme={toggleTheme}
         onOpenSettings={() => setSettingsOpen(true)}
         onTriggerDescribe={handleDescribeScene}

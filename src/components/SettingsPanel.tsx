@@ -318,8 +318,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-blue-600'
               }`}
             >
-              <option value="gemini-2.0-flash">Gemini 2.0 Flash (Fastest & Recommended for Navigation)</option>
-              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Reliable Fallback)</option>
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fastest & Recommended for Navigation)</option>
+              <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (Ultra Lightweight)</option>
             </select>
           </div>
         </section>

@@ -28,6 +28,7 @@ interface HUDOverlayProps {
   findTarget: FindTargetType;
   lightLuminancePercent: number;
   isAnalyzingScene: boolean;
+  isReadingCurrency?: boolean;
   onToggleTheme?: () => void;
   onOpenSettings?: () => void;
   onTriggerDescribe?: () => void;
@@ -57,6 +58,7 @@ export function HUDOverlay({
   findTarget,
   lightLuminancePercent,
   isAnalyzingScene,
+  isReadingCurrency = false,
   onToggleTheme,
   onOpenSettings,
   onTriggerDescribe,
@@ -102,7 +104,7 @@ export function HUDOverlay({
   const status = statusStyles[hazardStatus];
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-4 z-10 select-none">
+    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-4 z-30 select-none">
       {/* ─── Top Bar & Quick Actions ─── */}
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
@@ -273,15 +275,18 @@ export function HUDOverlay({
             <button
               type="button"
               onClick={onTriggerCurrency}
+              disabled={isReadingCurrency}
               className={`pointer-events-auto px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm transition-all active:scale-95 flex items-center gap-1.5 ${
-                isDark
-                  ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-700 text-slate-200'
-                  : 'bg-white/95 hover:bg-slate-50 border-slate-300 text-slate-700'
+                isReadingCurrency
+                  ? 'bg-emerald-500 text-slate-950 animate-pulse border-emerald-400 font-black'
+                  : isDark
+                    ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-700 text-slate-200'
+                    : 'bg-white/95 hover:bg-slate-50 border-slate-300 text-slate-700'
               }`}
-              title="Read banknote or currency"
+              title="Two-finger double-tap to read banknote or currency"
             >
               <span>💵</span>
-              <span>Cash</span>
+              <span>{isReadingCurrency ? 'Reading...' : 'Cash'}</span>
             </button>
           )}
         </div>

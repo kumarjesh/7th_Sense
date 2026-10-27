@@ -179,7 +179,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   geminiApiKey:
     (import.meta.env.VITE_GEMINI_API_KEY as string | undefined)?.trim() || '',
   geminiModel:
-    (import.meta.env.VITE_GEMINI_MODEL as string | undefined)?.trim() || 'gemini-2.0-flash',
+    (import.meta.env.VITE_GEMINI_MODEL as string | undefined)?.trim() || 'gemini-2.5-flash',
   lightDetectorVolume: 0.5,
   findTarget: 'door',
 };
