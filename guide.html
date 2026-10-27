@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VisionGuard — Complete Gestures, Assistive Actions & Spoken Confirmations Guide</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 8mm 10mm 8mm 10mm;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
+      background: #ffffff;
+      line-height: 1.3;
+      font-size: 8pt;
+    }
+    .header {
+      border-bottom: 2px solid #2563eb;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-badge {
+      background: #0f172a;
+      color: #38bdf8;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16pt;
+      font-weight: 900;
+      border: 1.5px solid #38bdf8;
+    }
+    .title-group h1 {
+      font-size: 15pt;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.4px;
+    }
+    .title-group p {
+      font-size: 8pt;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .meta-badge {
+      text-align: right;
+      font-size: 7.5pt;
+      color: #475569;
+    }
+    .meta-badge .tag {
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-weight: 700;
+      font-size: 7.5pt;
+      border: 1px solid #bfdbfe;
+      display: inline-block;
+      margin-bottom: 2px;
+    }
+
+    .callout {
+      background: #f8fafc;
+      border-left: 3.5px solid #2563eb;
+      padding: 6px 10px;
+      margin-bottom: 10px;
+      border-radius: 0 6px 6px 0;
+      font-size: 7.8pt;
+      color: #334155;
+    }
+    .callout strong {
+      color: #0f172a;
+    }
+
+    h2 {
+      font-size: 10pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 8px;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 2px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 6px;
+      font-size: 7.5pt;
+    }
+    th {
+      background: #0f172a;
+      color: #ffffff;
+      padding: 3.5px 5px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 7.2pt;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    th:first-child { border-top-left-radius: 4px; }
+    th:last-child { border-top-right-radius: 4px; }
+    td {
+      padding: 2.5px 5px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .badge-gesture {
+      display: inline-block;
+      font-weight: 700;
+      color: #0f172a;
+      background: #e2e8f0;
+      padding: 1.5px 5px;
+      border-radius: 3px;
+      font-size: 7.5pt;
+      white-space: nowrap;
+    }
+    .finger-1 { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .finger-2 { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .finger-3 { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    .spoken-text {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #0369a1;
+      font-size: 7.5pt;
+      font-weight: 600;
+      background: #f0f9ff;
+      padding: 1.5px 4px;
+      border-radius: 3px;
+      border-left: 2px solid #0284c7;
+      display: block;
+      margin-top: 1.5px;
+      line-height: 1.25;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .card {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 7px 9px;
+      background: #ffffff;
+    }
+    .card h3 {
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .card p, .card ul {
+      font-size: 7.5pt;
+      color: #475569;
+    }
+    .card ul {
+      padding-left: 12px;
+      margin-top: 2px;
+    }
+
+    .footer {
+      border-top: 1px solid #cbd5e1;
+      padding-top: 6px;
+      font-size: 7pt;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== PAGE 1 ==================== -->
+  <div class="header">
+    <div class="brand">
+      <div class="logo-badge">👁️</div>
+      <div class="title-group">
+        <h1>VisionGuard Accessibility Manual</h1>
+        <p>Complete Reference: Touch Gestures, Assistive Actions & Spoken Confirmations</p>
+      </div>
+    </div>
+    <div class="meta-badge">
+      <span class="tag">Hybrid Edge + Gemini AI</span>
+      <div>Version 2.0 • Page 1 of 2</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Zero-Vision Touch Screen Architecture:</strong> The entire screen functions as an active blind-friendly gesture surface. Users do not need to target buttons or look at the display. Every gesture triggers immediate haptic feedback and clear spoken voice confirmation via speech synthesis.
+  </div>
+
+  <!-- TABLE 1: ONE-FINGER GESTURES -->
+  <h2>👆 1. One-Finger Navigation & Controls</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 17%;">Gesture</th>
+        <th style="width: 25%;">Assistive Action</th>
+        <th style="width: 36%;">Spoken Voice Confirmation</th>
+        <th style="width: 22%;">Pedestrian Use Case</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-1">Single Tap</span><br>
+          <small style="color:#64748b">1 finger tap</small>
+        </td>
+        <td><strong>Toggle Scanning</strong><br>Pauses or resumes live camera obstacle tracking and sonar pings.</td>
+        <td>
+          <span class="spoken-text">"Scanning active"</span>
+          <span class="spoken-text">"Scanning paused"</span>
+        </td>
+        <td>Pause while talking to someone, riding an elevator, or seated.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-1">Double Tap</span><br>
+          <small style="color:#64748b">2 rapid taps (1 finger)</small>
+        </td>
+        <td><strong>Repeat Hazard Report</strong><br>Re-analyzes and repeats current urgent obstacles or clear path.</td>
+        <td>
+          <span class="spoken-text">"Obstacle report: [hazards]"</span>
+          <span class="spoken-text">"Path is clear ahead"</span>
+        </td>
+        <td>When approaching a curb, crossing, or doorway to double-check.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-1">Swipe Up</span><br>
+          <small style="color:#64748b">1 finger flick up</small>
+        </td>
+        <td><strong>Toggle Flashlight / Torch</strong><br>Powers the rear camera LED torch for low-light vision.</td>
+        <td>
+          <span class="spoken-text">"Flashlight on" / "Flashlight off"</span>
+        </td>
+        <td>Walking on unlit sidewalks, dim stairwells, or evening navigation.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-1">Swipe Down</span><br>
+          <small style="color:#64748b">1 finger flick down</small>
+        </td>
+        <td><strong>Announce System Status</strong><br>Speaks battery %, inference FPS, active mode & obstacle count.</td>
+        <td>
+          <span class="spoken-text">"VisionGuard active. Battery 85%, running at 4 frames per second. 1 obstacle detected."</span>
+        </td>
+        <td>Periodic battery & system health check without sighted assistance.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-1">Swipe Right</span><br>
+          <small style="color:#64748b">1 finger flick right</small>
+        </td>
+        <td><strong>Cycle Feedback Audio Mode</strong><br>Cycles audio verbosity: Full ➔ Voice Only ➔ Sonar Only ➔ Emergency Only.</td>
+        <td>
+          <span class="spoken-text">"Full audio mode" / "Voice only mode"</span>
+          <span class="spoken-text">"Sonar only mode" / "Emergency only mode"</span>
+        </td>
+        <td>Quiet transit mode (Emergency only) vs noisy streets (Full audio).</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-1">Swipe Left</span><br>
+          <small style="color:#64748b">1 finger flick left</small>
+        </td>
+        <td><strong>Toggle High-Contrast Theme</strong><br>Instantly toggles Obsidian Dark and Porcelain Light themes.</td>
+        <td>
+          <span class="spoken-text">"Switched to light mode" / "Switched to dark mode"</span>
+        </td>
+        <td>Adapting to bright outdoor sunlight glare vs indoor lighting.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-1">Long Press</span><br>
+          <small style="color:#64748b">Hold finger down 1.5s</small>
+        </td>
+        <td><strong>Cycle Verbosity (Alternative)</strong><br>Secondary trigger for cycling audio feedback modes.</td>
+        <td>
+          <span class="spoken-text">"Full audio mode" / "Voice only mode"</span>
+        </td>
+        <td>Convenient when wearing winter gloves or holding cane.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TABLE 2: TWO-FINGER GESTURES -->
+  <h2>✌️ 2. Two-Finger Multimodal AI & Assistive Intelligence</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 17%;">Gesture</th>
+        <th style="width: 25%;">Assistive Action</th>
+        <th style="width: 36%;">Spoken Voice Confirmation</th>
+        <th style="width: 22%;">Pedestrian Use Case</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-2">Two-Finger Tap</span><br>
+          <small style="color:#64748b">2 fingers tap once</small>
+        </td>
+        <td><strong>🧠 Google Gemini Scene Narrator</strong><br>Snaps high-res frame and speaks natural spatial layout.</td>
+        <td>
+          <span class="spoken-text">"Analyzing scene with Google AI..."</span>
+          <span class="spoken-text">"At 11 o'clock is an open door, at 12 o'clock is a desk, at 2 o'clock is an office chair."</span>
+        </td>
+        <td>Entering an unfamiliar room, hotel lobby, restaurant, or intersection.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-2">Two-Finger Double Tap</span><br>
+          <small style="color:#64748b">2 fingers double tap</small>
+        </td>
+        <td><strong>Re-check Telemetry & Path</strong><br>Re-announces telemetry and surrounding context.</td>
+        <td>
+          <span class="spoken-text">"VisionGuard active. Full audio mode. 0 obstacles detected."</span>
+        </td>
+        <td>Reassurance that system is functioning during quiet stretches.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-2">Two-Finger Swipe Up</span><br>
+          <small style="color:#64748b">2 fingers flick up</small>
+        </td>
+        <td><strong>📖 Instant Text & Sign Reader (OCR)</strong><br>Continuous OCR scanning text every 3.5s with speech.</td>
+        <td>
+          <span class="spoken-text">"Text Reader active. Point camera at text."</span>
+          <span class="spoken-text">"Text reader stopped"</span>
+        </td>
+        <td>Finding room numbers, reading street signs, product labels, or notices.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-2">Two-Finger Swipe Down</span><br>
+          <small style="color:#64748b">2 fingers flick down</small>
+        </td>
+        <td><strong>💡 Light & Window Tone Detector</strong><br>Audio oscillator maps light (0–255) to pitch (180–1100 Hz).</td>
+        <td>
+          <span class="spoken-text">"Light tone active. Pitch rises near light sources."</span>
+          <span class="spoken-text">"Light tone off"</span>
+        </td>
+        <td>Locating daylight windows, confirming lights are on/off before leaving.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-2">Two-Finger Swipe Right</span><br>
+          <small style="color:#64748b">2 fingers flick right</small>
+        </td>
+        <td><strong>🎯 Target Finder Next Object</strong><br>Cycles target forward: door ➔ chair ➔ stairs ➔ elevator ➔ crosswalk.</td>
+        <td>
+          <span class="spoken-text">"Target set to door. Point camera to locate."</span>
+          <span class="spoken-text">"Target set to stairs. Point camera to locate."</span>
+        </td>
+        <td>Locating building exits, empty seats on a bus/subway, or staircases.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-2">Two-Finger Swipe Left</span><br>
+          <small style="color:#64748b">2 fingers flick left</small>
+        </td>
+        <td><strong>🎯 Target Finder Previous Object</strong><br>Cycles target backward through library.</td>
+        <td>
+          <span class="spoken-text">"Target set to crosswalk..."</span>
+        </td>
+        <td>Quickly returning to a previous target without cycling all options.</td>
+      </tr>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-2">Two-Finger Long Press</span><br>
+          <small style="color:#64748b">Hold 2 fingers 1.5s</small>
+        </td>
+        <td><strong>Open / Close Settings Panel</strong><br>Opens accessible configuration dialog for speed, volume, and AI.</td>
+        <td>
+          <span class="spoken-text">"Settings opened"</span>
+          <span class="spoken-text">"Settings closed"</span>
+        </td>
+        <td>Changing voice rate, lens FOV preset, or checking API connectivity.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TABLE 3: THREE-FINGER EMERGENCY GESTURE -->
+  <h2>🚨 3. Three-Finger Safety Gesture</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 17%;">Gesture</th>
+        <th style="width: 25%;">Assistive Action</th>
+        <th style="width: 36%;">Spoken Voice Confirmation</th>
+        <th style="width: 22%;">Pedestrian Use Case</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <span class="badge-gesture finger-3">Three-Finger Tap</span><br>
+          <small style="color:#991b1b">3 fingers tap screen</small>
+        </td>
+        <td><strong>🛑 EMERGENCY PAUSE (Kill Switch)</strong><br>Instantly halts all audio pings, speech synthesis, and engines.</td>
+        <td>
+          <span class="spoken-text">"VisionGuard emergency pause. Tap screen to resume."</span>
+        </td>
+        <td>Emergency vehicle sirens approaching, crossing busy street, hearing safety.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <div>VisionGuard Manual • Master Gesture Reference</div>
+    <div>Electronic orientation aid • Always use alongside a physical white cane</div>
+  </div>
+
+  <!-- ==================== PAGE 2 ==================== -->
+  <div class="page-break"></div>
+
+  <div class="header">
+    <div class="brand">
+      <div class="logo-badge">🛡️</div>
+      <div class="title-group">
+        <h1>VisionGuard Features & Architecture Guide</h1>
+        <p>Engine Architecture, Audio Radar Bands & Zero-Typing Setup</p>
+      </div>
+    </div>
+    <div class="meta-badge">
+      <span class="tag">Hybrid System</span>
+      <div>Version 2.0 • Page 2 of 2</div>
+    </div>
+  </div>
+
+  <h2>📱 4. On-Screen HUD Quick Actions (For Sighted Testers & Low-Vision Users)</h2>
+  <div class="section-grid">
+    <div class="card">
+      <h3><span>🧠</span> Describe Scene Button</h3>
+      <p>Snaps active camera frame and invokes Google Gemini 2.0 Flash to synthesize a detailed spatial orientation paragraph with clock directions.</p>
+    </div>
+    <div class="card">
+      <h3><span>📖</span> Read Text (OCR) Button</h3>
+      <p>Activates automatic sign and text reading. Point phone at signs, food packages, or mail. Deduplicates repeated text automatically.</p>
+    </div>
+    <div class="card">
+      <h3><span>💡</span> Light Tone Button</h3>
+      <p>Starts continuous audio pitch oscillator. High frequency whistle indicates facing a bright light source or daylight window.</p>
+    </div>
+    <div class="card">
+      <h3><span>🎯</span> Seek Target Button</h3>
+      <p>Cycles search targets (door, chair, stairs, etc.). Emits 3D binaural directional beacon sound that centers when facing target.</p>
+    </div>
+    <div class="card">
+      <h3><span>💵</span> Cash / Currency Button</h3>
+      <p>Snaps frame and identifies banknote currency and denomination (e.g. <em>"Twenty US Dollars"</em>) to prevent payment errors.</p>
+    </div>
+    <div class="card">
+      <h3><span>⚙️</span> Settings & Torch Buttons</h3>
+      <p>Top HUD bar gives direct access to flashlight toggle, dark/light theme switch, pause/resume, and settings configuration dialog.</p>
+    </div>
+  </div>
+
+  <h2>🔊 5. 3D Spatial Audio Radar & Proximity Band Guide</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 18%;">Proximity Band</th>
+        <th style="width: 22%;">Estimated Distance</th>
+        <th style="width: 28%;">Spatial Sonar Audio Cue</th>
+        <th style="width: 32%;">Voice Speech Behavior</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong style="color: #16a34a;">CLEAR / SAFE</strong></td>
+        <td>Beyond 3.5 meters</td>
+        <td>Low-frequency intermittent pulse (1.2s cadence)</td>
+        <td>Ambient path status spoken every 15 seconds.</td>
+      </tr>
+      <tr>
+        <td><strong style="color: #d97706;">CAUTION</strong></td>
+        <td>1.5 to 3.5 meters</td>
+        <td>Medium-pitch pulse (500ms cadence), pans stereo left/right</td>
+        <td>Speaks obstacle class and zone: <em>"Chair right caution"</em>.</td>
+      </tr>
+      <tr>
+        <td><strong style="color: #dc2626;">DANGER / CRITICAL</strong></td>
+        <td>Under 1.2 meters (cane reach)</td>
+        <td>High-pitch rapid beacon (150ms cadence) + haptic buzz</td>
+        <td><strong>Immediate audio ducking & interrupt:</strong> <em>"Stop! Person center danger"</em>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>🔧 6. Zero-Typing Project Configuration via .env</h2>
+  <div class="card" style="margin-bottom: 8px;">
+    <h3><span>🔑</span> Instant Google Gemini AI Configuration</h3>
+    <p>You never need to type or paste an API key on your mobile phone screen. Configure it directly in the project file:</p>
+    <ul style="margin-top: 4px; line-height: 1.55;">
+      <li>Open <strong style="font-family:monospace; background:#f1f5f9; padding:1px 4px; border-radius:3px;">.env</strong> in the project root on your computer.</li>
+      <li>Set: <strong style="font-family:monospace; background:#f1f5f9; padding:1px 4px; border-radius:3px;">VITE_GEMINI_API_KEY=your_gemini_api_key_here</strong></li>
+      <li>Get a free key (no credit card required) at <strong style="color: #2563eb;">aistudio.google.com</strong>.</li>
+      <li>When deploying to <strong>Vercel</strong>, add <strong style="font-family:monospace; background:#f1f5f9; padding:1px 4px; border-radius:3px;">VITE_GEMINI_API_KEY</strong> under Project Settings ➔ Environment Variables. Every mobile phone visiting your Vercel URL will automatically load the key!</li>
+    </ul>
+  </div>
+
+  <h2>💡 7. Testing Checklist for New Users</h2>
+  <div class="section-grid">
+    <div class="card">
+      <h3><span>1️⃣</span> Test Edge Collision</h3>
+      <p>Walk toward a chair or wall. Hear the sonar tempo speed up and pan left/right. At 1.2m, verify the critical interrupt: <em>"Stop! [Object] danger"</em>.</p>
+    </div>
+    <div class="card">
+      <h3><span>2️⃣</span> Test Gemini Scene Narrator</h3>
+      <p>Double-tap with two fingers in any room. Listen to Gemini describe furniture, doors, and clear paths using clock directions.</p>
+    </div>
+    <div class="card">
+      <h3><span>3️⃣</span> Test Text Reader</h3>
+      <p>Swipe up with two fingers. Aim camera at a book, food box, or street sign. Hear the speech synthesizer read the words.</p>
+    </div>
+    <div class="card">
+      <h3><span>4️⃣</span> Test Light Detector</h3>
+      <p>Swipe down with two fingers. Aim camera toward a window or lamp. Notice the oscillator whistle rise into a high pitch.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div><strong>VisionGuard Assistant</strong> • Open-Source Accessibility Software</div>
+    <div>Safety Notice: VisionGuard is an electronic orientation aid and does NOT replace a physical white cane or guide dog.</div>
+  </div>
+
+</body>
+</html>

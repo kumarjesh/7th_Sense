@@ -57,7 +57,7 @@ export function GesturePad({ onGesture, disabled = false, theme = 'dark' }: Gest
     <div
       ref={padRef}
       role="application"
-      aria-label="VisionGuard gesture navigation pad. Single tap to toggle scanning, double-tap to repeat hazard summary, two-finger tap to describe scene with Google AI, swipe up for flashlight, swipe down for status, two-finger swipe up for text reader, two-finger swipe down for light detector, two-finger swipe left or right to change target object, long press to cycle sound modes, two finger long press for settings, three finger tap for emergency pause."
+      aria-label="VisionGuard gesture navigation pad. Single tap to toggle scanning, double-tap to repeat hazard summary, swipe left to switch theme, swipe right to cycle audio feedback mode, swipe up for flashlight, swipe down for status, two-finger tap to describe scene with Google AI, two-finger double-tap for status, two-finger swipe up for text reader, two-finger swipe down for light detector, two-finger swipe left or right to change target object, long press to cycle sound modes, two finger long press for settings, three finger tap for emergency pause."
       tabIndex={0}
       className="absolute inset-0 z-20 touch-none select-none focus:outline-none"
     >

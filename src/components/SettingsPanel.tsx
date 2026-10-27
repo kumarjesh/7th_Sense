@@ -23,7 +23,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [devicePreset, setDevicePreset] = useState<string>(() =>
     CalibrationManager.getCurrentPreset()
   );
-  const [apiKeyInput, setApiKeyInput] = useState<string>(() => settings.geminiApiKey || '');
+  const envApiKey = (import.meta.env.VITE_GEMINI_API_KEY as string | undefined)?.trim() || '';
+  const [apiKeyInput, setApiKeyInput] = useState<string>(() => settings.geminiApiKey || envApiKey);
   const [showApiKey, setShowApiKey] = useState(false);
   const [testingApiKey, setTestingApiKey] = useState(false);
   const [apiTestResult, setApiTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -31,9 +32,9 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   useEffect(() => {
     return SettingsStore.subscribe((newSettings) => {
       setSettings(newSettings);
-      setApiKeyInput(newSettings.geminiApiKey || '');
+      setApiKeyInput(newSettings.geminiApiKey || envApiKey);
     });
-  }, []);
+  }, [envApiKey]);
 
   if (!isOpen) return null;
 
@@ -223,15 +224,23 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
           {/* API Key Input */}
           <div className="space-y-1.5">
-            <label htmlFor="gemini-key-input" className="block text-xs sm:text-sm font-semibold">
-              Google Gemini API Key
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="gemini-key-input" className="block text-xs sm:text-sm font-semibold">
+                Google Gemini API Key
+              </label>
+              {envApiKey && (
+                <span className="text-[11px] font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-500/40 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                  <span>⚡</span>
+                  <span>Active via .env</span>
+                </span>
+              )}
+            </div>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <input
                   id="gemini-key-input"
                   type={showApiKey ? 'text' : 'password'}
-                  placeholder="AIzaSy..."
+                  placeholder={envApiKey ? '•••••••••••••••• (.env configured)' : 'AIzaSy...'}
                   value={apiKeyInput}
                   onChange={(e) => setApiKeyInput(e.target.value)}
                   onBlur={handleApiKeySave}

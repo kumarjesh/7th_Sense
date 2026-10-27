@@ -17,14 +17,20 @@ export interface TargetFindResult {
 class GeminiVisionEngineImpl {
   private isAnalyzing = false;
 
-  /** Get active API Key from SettingsStore */
+  /** Get active API Key from SettingsStore or environment variables */
   private getApiKey(): string {
-    return SettingsStore.get('geminiApiKey')?.trim() || '';
+    const fromStore = SettingsStore.get('geminiApiKey')?.trim();
+    if (fromStore) return fromStore;
+    const fromEnv = (import.meta.env.VITE_GEMINI_API_KEY as string | undefined)?.trim();
+    return fromEnv || '';
   }
 
-  /** Get active model */
+  /** Get active model from SettingsStore or environment variables */
   private getModel(): string {
-    return SettingsStore.get('geminiModel') || 'gemini-2.0-flash';
+    const fromStore = SettingsStore.get('geminiModel')?.trim();
+    if (fromStore) return fromStore;
+    const fromEnv = (import.meta.env.VITE_GEMINI_MODEL as string | undefined)?.trim();
+    return fromEnv || 'gemini-2.0-flash';
   }
 
   /** Check if currently running a cloud analysis */

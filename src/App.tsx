@@ -434,6 +434,13 @@ export function App() {
     }
   }, [captureFrame]);
 
+  // Toggle light/dark theme
+  const toggleTheme = useCallback(() => {
+    const nextTheme: AppTheme = theme === 'dark' ? 'light' : 'dark';
+    SettingsStore.set({ theme: nextTheme });
+    SpeechEngine.speak(`Switched to ${nextTheme} mode`, 'HIGH');
+  }, [theme]);
+
   // Handle blind-first touch gestures
   const handleGesture = useCallback(
     (gesture: GestureType) => {
@@ -449,6 +456,12 @@ export function App() {
           break;
         case 'swipe-down':
           announceStatus();
+          break;
+        case 'swipe-right':
+          cycleVerbosityMode();
+          break;
+        case 'swipe-left':
+          toggleTheme();
           break;
         case 'long-press':
           cycleVerbosityMode();
@@ -494,6 +507,7 @@ export function App() {
       handleTorchToggle,
       announceStatus,
       cycleVerbosityMode,
+      toggleTheme,
       handleDescribeScene,
       handleToggleTextReader,
       handleToggleLightDetector,
@@ -501,13 +515,6 @@ export function App() {
       emergencyPause,
     ]
   );
-
-  // Toggle light/dark theme
-  const toggleTheme = useCallback(() => {
-    const nextTheme: AppTheme = theme === 'dark' ? 'light' : 'dark';
-    SettingsStore.set({ theme: nextTheme });
-    SpeechEngine.speak(`Switched to ${nextTheme} mode`, 'HIGH');
-  }, [theme]);
 
   return (
     <main
