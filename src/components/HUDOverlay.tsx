@@ -1,12 +1,14 @@
 // ============================================================
 // VisionGuard — HUD Overlay Component
 // ============================================================
-// Heads-up display over camera feed with dual-theme design (Dark & Light).
-// Shows: status, mode, FPS, battery, hazard badge, and rolling alert log.
+// Heads-up display over camera feed with dual-theme design (Dark & Light),
+// real-time hazard badges, Google Gemini AI quick tools, and rolling alert log.
 
 import type {
   AlertLogEntry,
   AppTheme,
+  AssistiveToolMode,
+  FindTargetType,
   HazardStatus,
   PerformanceMetrics,
   ScanningState,
@@ -22,8 +24,17 @@ interface HUDOverlayProps {
   alertLog: AlertLogEntry[];
   showDebug: boolean;
   torchActive: boolean;
+  activeAssistiveTool: AssistiveToolMode;
+  findTarget: FindTargetType;
+  lightLuminancePercent: number;
+  isAnalyzingScene: boolean;
   onToggleTheme?: () => void;
   onOpenSettings?: () => void;
+  onTriggerDescribe?: () => void;
+  onToggleTextReader?: () => void;
+  onToggleLightDetector?: () => void;
+  onCycleFindTarget?: () => void;
+  onTriggerCurrency?: () => void;
 }
 
 const MODE_LABELS: Record<VerbosityMode, string> = {
@@ -42,8 +53,17 @@ export function HUDOverlay({
   alertLog,
   showDebug,
   torchActive,
+  activeAssistiveTool,
+  findTarget,
+  lightLuminancePercent,
+  isAnalyzingScene,
   onToggleTheme,
   onOpenSettings,
+  onTriggerDescribe,
+  onToggleTextReader,
+  onToggleLightDetector,
+  onCycleFindTarget,
+  onTriggerCurrency,
 }: HUDOverlayProps) {
   const isDark = theme === 'dark';
   const isActive = scanningState === 'ACTIVE';
@@ -83,89 +103,205 @@ export function HUDOverlay({
 
   return (
     <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-4 z-10 select-none">
-      {/* ─── Top Bar ─── */}
-      <div className="flex items-center justify-between gap-2">
-        {/* Left: Scanning Status Pill */}
-        <div
-          className={`flex items-center gap-2.5 rounded-full px-3.5 py-1.5 backdrop-blur-md border text-xs sm:text-sm font-bold shadow-sm transition-colors ${
-            isDark
-              ? 'bg-slate-900/80 border-slate-700/60 text-slate-100'
-              : 'bg-white/90 border-slate-200/90 text-slate-800'
-          }`}
-        >
+      {/* ─── Top Bar & Quick Actions ─── */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: Scanning Status Pill */}
           <div
-            className={`w-2.5 h-2.5 rounded-full ${
-              isActive
-                ? 'bg-emerald-500 animate-pulse'
-                : 'bg-rose-500'
-            }`}
-          />
-          <span>{isActive ? 'SCANNING' : scanningState}</span>
-        </div>
-
-        {/* Right: Mode + Torch + Interactive Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {torchActive && (
-            <div
-              className={`rounded-full px-2.5 py-1 text-xs font-bold border ${
-                isDark
-                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                  : 'bg-amber-100 border-amber-300 text-amber-800'
-              }`}
-            >
-              <span>🔦 Torch</span>
-            </div>
-          )}
-
-          {/* Mode Badge */}
-          <div
-            className={`rounded-full px-3 py-1.5 text-xs sm:text-sm font-bold backdrop-blur-md border shadow-sm ${
+            className={`flex items-center gap-2.5 rounded-full px-3.5 py-1.5 backdrop-blur-md border text-xs sm:text-sm font-bold shadow-sm transition-colors ${
               isDark
-                ? 'bg-slate-900/80 border-slate-700/60 text-slate-200'
+                ? 'bg-slate-900/80 border-slate-700/60 text-slate-100'
                 : 'bg-white/90 border-slate-200/90 text-slate-800'
             }`}
           >
-            <span>{MODE_LABELS[verbosityMode]}</span>
+            <div
+              className={`w-2.5 h-2.5 rounded-full ${
+                isActive
+                  ? 'bg-emerald-500 animate-pulse'
+                  : 'bg-rose-500'
+              }`}
+            />
+            <span>{isActive ? 'SCANNING' : scanningState}</span>
           </div>
 
-          {/* Interactive Theme Toggle Button */}
-          {onToggleTheme && (
+          {/* Right: Mode + Torch + Interactive Controls */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {torchActive && (
+              <div
+                className={`rounded-full px-2.5 py-1 text-xs font-bold border ${
+                  isDark
+                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                    : 'bg-amber-100 border-amber-300 text-amber-800'
+                }`}
+              >
+                <span>🔦 Torch</span>
+              </div>
+            )}
+
+            {/* Mode Badge */}
+            <div
+              className={`rounded-full px-3 py-1.5 text-xs sm:text-sm font-bold backdrop-blur-md border shadow-sm ${
+                isDark
+                  ? 'bg-slate-900/80 border-slate-700/60 text-slate-200'
+                  : 'bg-white/90 border-slate-200/90 text-slate-800'
+              }`}
+            >
+              <span>{MODE_LABELS[verbosityMode]}</span>
+            </div>
+
+            {/* Interactive Theme Toggle Button */}
+            {onToggleTheme && (
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className={`pointer-events-auto p-1.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-bold backdrop-blur-md border shadow-sm transition-transform active:scale-95 ${
+                  isDark
+                    ? 'bg-slate-800/90 border-slate-700 text-amber-300 hover:bg-slate-700'
+                    : 'bg-white/95 border-slate-300 text-slate-800 hover:bg-slate-100'
+                }`}
+                aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+                title="Toggle Light / Dark Mode"
+              >
+                <span>{isDark ? '☀️' : '🌙'}</span>
+              </button>
+            )}
+
+            {/* Interactive Settings Button */}
+            {onOpenSettings && (
+              <button
+                type="button"
+                onClick={onOpenSettings}
+                className={`pointer-events-auto p-1.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-bold backdrop-blur-md border shadow-sm transition-transform active:scale-95 ${
+                  isDark
+                    ? 'bg-slate-800/90 border-slate-700 text-slate-200 hover:bg-slate-700'
+                    : 'bg-white/95 border-slate-300 text-slate-800 hover:bg-slate-100'
+                }`}
+                aria-label="Open settings"
+                title="Open Settings"
+              >
+                <span>⚙️</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ─── Assistive Intelligence Quick Bar (Google AI Tools) ─── */}
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+          {/* Describe Scene Button */}
+          {onTriggerDescribe && (
             <button
               type="button"
-              onClick={onToggleTheme}
-              className={`pointer-events-auto p-1.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-bold backdrop-blur-md border shadow-sm transition-transform active:scale-95 ${
-                isDark
-                  ? 'bg-slate-800/90 border-slate-700 text-amber-300 hover:bg-slate-700'
-                  : 'bg-white/95 border-slate-300 text-slate-800 hover:bg-slate-100'
+              onClick={onTriggerDescribe}
+              disabled={isAnalyzingScene}
+              className={`pointer-events-auto px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm transition-all active:scale-95 flex items-center gap-1.5 ${
+                isAnalyzingScene
+                  ? 'bg-amber-500 text-slate-950 animate-pulse border-amber-400'
+                  : isDark
+                    ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-700 text-amber-300'
+                    : 'bg-white/95 hover:bg-slate-50 border-slate-300 text-blue-700'
               }`}
-              aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-              title="Toggle Light / Dark Mode"
+              title="Two-finger tap to describe scene with Gemini"
             >
-              <span>{isDark ? '☀️' : '🌙'}</span>
+              <span>🧠</span>
+              <span>{isAnalyzingScene ? 'Analyzing...' : 'Describe'}</span>
             </button>
           )}
 
-          {/* Interactive Settings Button */}
-          {onOpenSettings && (
+          {/* Read Text Button */}
+          {onToggleTextReader && (
             <button
               type="button"
-              onClick={onOpenSettings}
-              className={`pointer-events-auto p-1.5 sm:px-2.5 sm:py-1 rounded-full text-xs font-bold backdrop-blur-md border shadow-sm transition-transform active:scale-95 ${
-                isDark
-                  ? 'bg-slate-800/90 border-slate-700 text-slate-200 hover:bg-slate-700'
-                  : 'bg-white/95 border-slate-300 text-slate-800 hover:bg-slate-100'
+              onClick={onToggleTextReader}
+              className={`pointer-events-auto px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm transition-all active:scale-95 flex items-center gap-1.5 ${
+                activeAssistiveTool === 'TEXT_READER'
+                  ? 'bg-blue-600 text-white border-blue-500'
+                  : isDark
+                    ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-700 text-slate-200'
+                    : 'bg-white/95 hover:bg-slate-50 border-slate-300 text-slate-700'
               }`}
-              aria-label="Open settings"
-              title="Open Settings"
+              title="Two-finger swipe up for text reader"
             >
-              <span>⚙️</span>
+              <span>📖</span>
+              <span>{activeAssistiveTool === 'TEXT_READER' ? 'Text: ON' : 'Read Text'}</span>
+            </button>
+          )}
+
+          {/* Light Detector Tone Button */}
+          {onToggleLightDetector && (
+            <button
+              type="button"
+              onClick={onToggleLightDetector}
+              className={`pointer-events-auto px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm transition-all active:scale-95 flex items-center gap-1.5 ${
+                activeAssistiveTool === 'LIGHT_DETECTOR'
+                  ? 'bg-amber-400 text-slate-950 border-amber-300'
+                  : isDark
+                    ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-700 text-slate-200'
+                    : 'bg-white/95 hover:bg-slate-50 border-slate-300 text-slate-700'
+              }`}
+              title="Two-finger swipe down for light tone"
+            >
+              <span>💡</span>
+              <span>
+                {activeAssistiveTool === 'LIGHT_DETECTOR'
+                  ? `Light: ${lightLuminancePercent}%`
+                  : 'Light Tone'}
+              </span>
+            </button>
+          )}
+
+          {/* Target Finder Button */}
+          {onCycleFindTarget && (
+            <button
+              type="button"
+              onClick={onCycleFindTarget}
+              className={`pointer-events-auto px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm transition-all active:scale-95 flex items-center gap-1.5 ${
+                activeAssistiveTool === 'FIND_TARGET'
+                  ? 'bg-emerald-600 text-white border-emerald-500'
+                  : isDark
+                    ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-700 text-slate-200'
+                    : 'bg-white/95 hover:bg-slate-50 border-slate-300 text-slate-700'
+              }`}
+              title="Two-finger swipe right/left to change target"
+            >
+              <span>🎯</span>
+              <span>Seek: {findTarget}</span>
+            </button>
+          )}
+
+          {/* Cash / Currency Reader */}
+          {onTriggerCurrency && (
+            <button
+              type="button"
+              onClick={onTriggerCurrency}
+              className={`pointer-events-auto px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm transition-all active:scale-95 flex items-center gap-1.5 ${
+                isDark
+                  ? 'bg-slate-900/90 hover:bg-slate-800 border-slate-700 text-slate-200'
+                  : 'bg-white/95 hover:bg-slate-50 border-slate-300 text-slate-700'
+              }`}
+              title="Read banknote or currency"
+            >
+              <span>💵</span>
+              <span>Cash</span>
             </button>
           )}
         </div>
       </div>
 
       {/* ─── Center Hazard Badge ─── */}
-      <div className="flex justify-center my-auto">
+      <div className="flex flex-col items-center justify-center my-auto space-y-3">
+        {/* Active Tool Notification Banner */}
+        {isAnalyzingScene && (
+          <div
+            className={`px-5 py-2 rounded-full border text-xs sm:text-sm font-bold animate-pulse backdrop-blur-md shadow-lg ${
+              isDark
+                ? 'bg-amber-950/90 border-amber-500 text-amber-300'
+                : 'bg-amber-50 border-amber-400 text-amber-900'
+            }`}
+          >
+            🧠 Describing scene with Google Gemini...
+          </div>
+        )}
+
         <div
           className={`rounded-2xl px-8 py-4 sm:px-10 sm:py-5 border-2 transition-all duration-300 backdrop-blur-md ${status.containerClass}`}
           role="status"
@@ -181,6 +317,19 @@ export function HUDOverlay({
             </span>
           </div>
         </div>
+
+        {/* Target Finder Indicator */}
+        {activeAssistiveTool === 'FIND_TARGET' && (
+          <div
+            className={`px-4 py-1.5 rounded-full border text-xs font-extrabold uppercase tracking-wider backdrop-blur-md shadow-sm ${
+              isDark
+                ? 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300'
+                : 'bg-emerald-50 border-emerald-300 text-emerald-800'
+            }`}
+          >
+            <span>🎯 Beacon Searching for: {findTarget}</span>
+          </div>
+        )}
       </div>
 
       {/* ─── Bottom Panel ─── */}
@@ -319,7 +468,7 @@ export function HUDOverlay({
               isDark ? 'text-slate-400' : 'text-slate-500'
             }`}
           >
-            Tap to {isActive ? 'pause' : 'resume'} · Double-tap for summary · Long-press to switch mode
+            2-finger tap: Describe Scene · 2-finger swipe up: Read Text · 2-finger swipe down: Light Tone · 1-finger tap: Pause/Resume
           </p>
         </div>
       </div>

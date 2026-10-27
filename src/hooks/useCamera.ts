@@ -13,6 +13,7 @@ interface UseCameraReturn {
   error: string | null;
   start: () => Promise<void>;
   stop: () => void;
+  captureFrame: (maxDimension?: number, quality?: number) => string | null;
 }
 
 export function useCamera(): UseCameraReturn {
@@ -104,5 +105,35 @@ export function useCamera(): UseCameraReturn {
     };
   }, []);
 
-  return { videoRef, stream, isActive, error, start, stop };
+  const captureFrame = useCallback(
+    (maxDimension = 1024, quality = 0.85): string | null => {
+      const video = videoRef.current;
+      if (!video || !video.videoWidth || !video.videoHeight) {
+        return null;
+      }
+
+      let { videoWidth: width, videoHeight: height } = video;
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+      ctx.drawImage(video, 0, 0, width, height);
+      return canvas.toDataURL('image/jpeg', quality);
+    },
+    []
+  );
+
+  return { videoRef, stream, isActive, error, start, stop, captureFrame };
 }

@@ -1,10 +1,11 @@
 // ============================================================
 // VisionGuard — Main Application (App.tsx)
 // ============================================================
-// Orchestrates all AI, vision, tracking, spatial audio, haptics,
-// and accessibility gestures for the VisionGuard PWA.
+// Orchestrates on-device AI vision, object tracking, 3D spatial sonar,
+// directional haptics, Google Gemini Multimodal Scene Intelligence,
+// text/sign OCR, light pitch detector, and target finding beacon.
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CameraFeed } from './components/CameraFeed';
 import { HUDOverlay } from './components/HUDOverlay';
 import { GesturePad } from './components/GesturePad';
@@ -18,7 +19,6 @@ import { useTorch } from './hooks/useTorch';
 import type { GestureType } from './hooks/useGestures';
 
 import { VisionPipeline } from './engines/VisionPipeline';
-import { TrackingManager } from './engines/TrackingManager';
 import { AlertPolicyEngine } from './engines/AlertPolicyEngine';
 import { SpeechEngine } from './engines/SpeechEngine';
 import { SpatialAudioEngine } from './engines/SpatialAudioEngine';
@@ -26,6 +26,10 @@ import { HapticsEngine } from './engines/HapticsEngine';
 import { PerformanceMonitor } from './engines/PerformanceMonitor';
 import { SafetyManager } from './engines/SafetyManager';
 import { SettingsStore } from './engines/SettingsStore';
+import { GeminiVisionEngine } from './engines/GeminiVisionEngine';
+import { LightDetectorEngine } from './engines/LightDetectorEngine';
+import { TargetFinderEngine } from './engines/TargetFinderEngine';
+import { TextReaderEngine } from './engines/TextReaderEngine';
 
 import type {
   ScanningState,
@@ -36,6 +40,8 @@ import type {
   PerformanceMetrics,
   AlertLogEntry,
   AppTheme,
+  AssistiveToolMode,
+  FindTargetType,
 } from './types';
 
 export function App() {
@@ -63,6 +69,14 @@ export function App() {
     SettingsStore.get('showDebugOverlay')
   );
 
+  // Assistive Tool states
+  const [activeAssistiveTool, setActiveAssistiveTool] = useState<AssistiveToolMode>('NONE');
+  const [findTarget, setFindTarget] = useState<FindTargetType>(() =>
+    SettingsStore.get('findTarget') || 'door'
+  );
+  const [lightLuminance, setLightLuminance] = useState<number>(0);
+  const [isAnalyzingScene, setIsAnalyzingScene] = useState<boolean>(false);
+
   // Detection & metrics for HUD / Debug canvas
   const [rawDetections, setRawDetections] = useState<RawDetection[]>([]);
   const [trackedObjects, setTrackedObjects] = useState<TrackedObject[]>([]);
@@ -72,8 +86,14 @@ export function App() {
   );
 
   // Hardware hooks
-  const { videoRef, stream, isActive: cameraActive, start: startCamera, stop: stopCamera } =
-    useCamera();
+  const {
+    videoRef,
+    stream,
+    isActive: cameraActive,
+    start: startCamera,
+    stop: stopCamera,
+    captureFrame,
+  } = useCamera();
   const { acquire: acquireWakeLock, release: releaseWakeLock } = useWakeLock();
   const { isOn: torchOn, isAvailable: torchAvailable, toggle: toggleTorch } =
     useTorch(stream);
@@ -98,6 +118,14 @@ export function App() {
       SpeechEngine.setRate(newSettings.speechRate);
       SpatialAudioEngine.setVolume(newSettings.sonarVolume);
       HapticsEngine.setIntensity(newSettings.hapticIntensity);
+
+      if (newSettings.findTarget) {
+        setFindTarget(newSettings.findTarget);
+        TargetFinderEngine.setTarget(newSettings.findTarget);
+      }
+      if (newSettings.lightDetectorVolume !== undefined) {
+        LightDetectorEngine.setVolume(newSettings.lightDetectorVolume);
+      }
     });
   }, []);
 
@@ -123,6 +151,15 @@ export function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Poll light luminance if light detector active
+  useEffect(() => {
+    if (activeAssistiveTool !== 'LIGHT_DETECTOR') return;
+    const interval = setInterval(() => {
+      setLightLuminance(LightDetectorEngine.getLuminancePercent());
+    }, 150);
+    return () => clearInterval(interval);
+  }, [activeAssistiveTool]);
+
   // Bind video element to VisionPipeline when camera becomes active
   useEffect(() => {
     if (cameraActive && videoRef.current) {
@@ -136,6 +173,11 @@ export function App() {
       VisionPipeline.onTrackedObjects((objects) => {
         setTrackedObjects(objects);
         AlertPolicyEngine.evaluate(objects);
+
+        // If target finder active, check for matches
+        if (activeAssistiveTool === 'FIND_TARGET') {
+          TargetFinderEngine.checkLocalMatches(objects);
+        }
       });
 
       // Start pipeline if scanning is ACTIVE
@@ -143,7 +185,7 @@ export function App() {
         VisionPipeline.start();
       }
     }
-  }, [cameraActive, scanningState, videoRef]);
+  }, [cameraActive, scanningState, videoRef, activeAssistiveTool]);
 
   // Handle visibility changes (pause when app is backgrounded to save battery)
   useEffect(() => {
@@ -152,6 +194,9 @@ export function App() {
         if (scanningState === 'ACTIVE') {
           VisionPipeline.stop();
           SpatialAudioEngine.stopAll();
+          LightDetectorEngine.stop();
+          TextReaderEngine.stop();
+          TargetFinderEngine.stop();
           releaseWakeLock();
         }
       } else if (document.visibilityState === 'visible') {
@@ -212,6 +257,10 @@ export function App() {
     if (scanningState === 'ACTIVE') {
       VisionPipeline.stop();
       SpatialAudioEngine.stopAll();
+      LightDetectorEngine.stop();
+      TextReaderEngine.stop();
+      TargetFinderEngine.stop();
+      setActiveAssistiveTool('NONE');
       setScanningState('PAUSED');
       SpeechEngine.speak('Scanning paused', 'HIGH');
     } else {
@@ -236,10 +285,14 @@ export function App() {
         : '';
     const fpsText = `Running at ${metrics.effectiveFps} frames per second.`;
     const modeText = `Mode is ${verbosityMode.replace(/_/g, ' ').toLowerCase()}.`;
-    const statusText = `${modeText} ${batteryText} ${fpsText} Hazard status is ${hazardStatus.toLowerCase()}.`;
+    const toolText =
+      activeAssistiveTool !== 'NONE'
+        ? `Active tool: ${activeAssistiveTool.replace(/_/g, ' ').toLowerCase()}.`
+        : '';
+    const statusText = `${modeText} ${toolText} ${batteryText} ${fpsText} Hazard status is ${hazardStatus.toLowerCase()}.`;
 
     SpeechEngine.speak(statusText, 'HIGH');
-  }, [verbosityMode, hazardStatus]);
+  }, [verbosityMode, activeAssistiveTool, hazardStatus]);
 
   // Cycle Verbosity Mode
   const cycleVerbosityMode = useCallback(() => {
@@ -266,6 +319,10 @@ export function App() {
   const emergencyPause = useCallback(() => {
     VisionPipeline.stop();
     SpatialAudioEngine.stopAll();
+    LightDetectorEngine.stop();
+    TextReaderEngine.stop();
+    TargetFinderEngine.stop();
+    setActiveAssistiveTool('NONE');
     SpeechEngine.cancel();
     setScanningState('PAUSED');
     SpeechEngine.speak('VisionGuard emergency pause. Tap screen to resume.', 'CRITICAL_INTERRUPT');
@@ -284,7 +341,100 @@ export function App() {
     );
   }, [torchAvailable, toggleTorch, torchOn]);
 
-  // Handle high-level gestures from GesturePad
+  // 1. Describe Scene (Google Gemini Multimodal AI)
+  const handleDescribeScene = useCallback(async () => {
+    if (isAnalyzingScene) return;
+    const frame = captureFrame(1024, 0.85);
+    if (!frame) {
+      SpeechEngine.speak('Camera not ready for scene description.', 'HIGH');
+      return;
+    }
+
+    setIsAnalyzingScene(true);
+    SpeechEngine.speak('Analyzing scene with Google AI...', 'HIGH');
+
+    const objectsSummary =
+      trackedObjects.length > 0
+        ? trackedObjects.map((o) => `${o.class} ${o.proximityBand.toLowerCase()}`).join(', ')
+        : 'path appears clear of large obstacles';
+
+    try {
+      const description = await GeminiVisionEngine.describeScene(frame, objectsSummary);
+      SpeechEngine.speak(description, 'CRITICAL_INTERRUPT');
+    } catch {
+      SpeechEngine.speak('Scene description failed. Please check internet connection.', 'HIGH');
+    } finally {
+      setIsAnalyzingScene(false);
+    }
+  }, [captureFrame, isAnalyzingScene, trackedObjects]);
+
+  // 2. Toggle Text Reader (OCR)
+  const handleToggleTextReader = useCallback(() => {
+    if (activeAssistiveTool === 'TEXT_READER') {
+      TextReaderEngine.stop();
+      setActiveAssistiveTool('NONE');
+    } else {
+      LightDetectorEngine.stop();
+      TargetFinderEngine.stop();
+      TextReaderEngine.start(() => captureFrame(1024, 0.85));
+      setActiveAssistiveTool('TEXT_READER');
+    }
+  }, [activeAssistiveTool, captureFrame]);
+
+  // 3. Toggle Light Detector Tone
+  const handleToggleLightDetector = useCallback(() => {
+    if (activeAssistiveTool === 'LIGHT_DETECTOR') {
+      LightDetectorEngine.stop();
+      setActiveAssistiveTool('NONE');
+      SpeechEngine.speak('Light tone off', 'MEDIUM');
+    } else {
+      if (!videoRef.current) return;
+      TextReaderEngine.stop();
+      TargetFinderEngine.stop();
+      LightDetectorEngine.start(videoRef.current);
+      setActiveAssistiveTool('LIGHT_DETECTOR');
+      SpeechEngine.speak('Light tone active. Pitch rises near light sources.', 'HIGH');
+    }
+  }, [activeAssistiveTool, videoRef]);
+
+  // 4. Cycle / Toggle Target Finder Mode
+  const handleCycleFindTarget = useCallback(
+    (forward = true) => {
+      TextReaderEngine.stop();
+      LightDetectorEngine.stop();
+
+      const newTarget = forward
+        ? TargetFinderEngine.cycleNextTarget()
+        : TargetFinderEngine.cyclePrevTarget();
+
+      setFindTarget(newTarget);
+      SettingsStore.set({ findTarget: newTarget });
+      TargetFinderEngine.start();
+      setActiveAssistiveTool('FIND_TARGET');
+
+      SpeechEngine.speak(`Target set to ${newTarget}. Point camera to locate.`, 'HIGH');
+    },
+    []
+  );
+
+  // 5. Read Currency
+  const handleTriggerCurrency = useCallback(async () => {
+    const frame = captureFrame(1024, 0.85);
+    if (!frame) {
+      SpeechEngine.speak('Camera not ready for currency reading.', 'HIGH');
+      return;
+    }
+
+    SpeechEngine.speak('Reading currency...', 'HIGH');
+    try {
+      const result = await GeminiVisionEngine.readCurrency(frame);
+      SpeechEngine.speak(result, 'CRITICAL_INTERRUPT');
+    } catch {
+      SpeechEngine.speak('Failed to identify currency.', 'HIGH');
+    }
+  }, [captureFrame]);
+
+  // Handle blind-first touch gestures
   const handleGesture = useCallback(
     (gesture: GestureType) => {
       switch (gesture) {
@@ -303,8 +453,23 @@ export function App() {
         case 'long-press':
           cycleVerbosityMode();
           break;
+        case 'two-finger-tap':
+          handleDescribeScene();
+          break;
         case 'two-finger-double-tap':
           announceStatus();
+          break;
+        case 'two-finger-swipe-up':
+          handleToggleTextReader();
+          break;
+        case 'two-finger-swipe-down':
+          handleToggleLightDetector();
+          break;
+        case 'two-finger-swipe-right':
+          handleCycleFindTarget(true);
+          break;
+        case 'two-finger-swipe-left':
+          handleCycleFindTarget(false);
           break;
         case 'two-finger-long-press':
           setSettingsOpen((prev) => {
@@ -329,6 +494,10 @@ export function App() {
       handleTorchToggle,
       announceStatus,
       cycleVerbosityMode,
+      handleDescribeScene,
+      handleToggleTextReader,
+      handleToggleLightDetector,
+      handleCycleFindTarget,
       emergencyPause,
     ]
   );
@@ -364,8 +533,17 @@ export function App() {
         alertLog={alertLog}
         showDebug={showDebug}
         torchActive={torchOn}
+        activeAssistiveTool={activeAssistiveTool}
+        findTarget={findTarget}
+        lightLuminancePercent={lightLuminance}
+        isAnalyzingScene={isAnalyzingScene}
         onToggleTheme={toggleTheme}
         onOpenSettings={() => setSettingsOpen(true)}
+        onTriggerDescribe={handleDescribeScene}
+        onToggleTextReader={handleToggleTextReader}
+        onToggleLightDetector={handleToggleLightDetector}
+        onCycleFindTarget={() => handleCycleFindTarget(true)}
+        onTriggerCurrency={handleTriggerCurrency}
       />
 
       {/* 3. Full-Screen Gesture Interaction Surface */}

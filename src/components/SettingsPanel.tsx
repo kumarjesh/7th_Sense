@@ -1,14 +1,17 @@
 // ============================================================
 // VisionGuard — Settings Panel Component
 // ============================================================
-// Accessible settings modal with dual-theme (Dark & Light) styling
+// Accessible settings modal with dual-theme (Dark & Light) styling,
+// Google Gemini Multimodal AI configuration, assistive tools setup,
 // and immediate spoken confirmation for every adjustment.
 
 import { useState, useEffect } from 'react';
 import { SettingsStore } from '../engines/SettingsStore';
 import { SpeechEngine } from '../engines/SpeechEngine';
 import { CalibrationManager, DEVICE_PRESETS } from '../engines/CalibrationManager';
-import type { AppSettings, AppTheme, HapticIntensity, VerbosityMode } from '../types';
+import { GeminiVisionEngine } from '../engines/GeminiVisionEngine';
+import { FIND_TARGET_OPTIONS } from '../types';
+import type { AppSettings, AppTheme, FindTargetType, HapticIntensity, VerbosityMode } from '../types';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -20,10 +23,15 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [devicePreset, setDevicePreset] = useState<string>(() =>
     CalibrationManager.getCurrentPreset()
   );
+  const [apiKeyInput, setApiKeyInput] = useState<string>(() => settings.geminiApiKey || '');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [testingApiKey, setTestingApiKey] = useState(false);
+  const [apiTestResult, setApiTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     return SettingsStore.subscribe((newSettings) => {
       setSettings(newSettings);
+      setApiKeyInput(newSettings.geminiApiKey || '');
     });
   }, []);
 
@@ -93,10 +101,36 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     SpeechEngine.speak(`Camera preset set to ${presetName}`, 'CRITICAL_INTERRUPT');
   };
 
+  const handleApiKeySave = () => {
+    updateSetting('geminiApiKey', apiKeyInput.trim(), 'Google API key saved');
+  };
+
+  const handleTestApiKey = async () => {
+    setTestingApiKey(true);
+    setApiTestResult(null);
+    SpeechEngine.speak('Verifying Google API key...', 'MEDIUM');
+
+    const res = await GeminiVisionEngine.testApiKey(apiKeyInput);
+    setTestingApiKey(false);
+    setApiTestResult(res);
+
+    if (res.success) {
+      updateSetting('geminiApiKey', apiKeyInput.trim());
+      SpeechEngine.speak('Google Gemini API key verified and saved successfully!', 'HIGH');
+    } else {
+      SpeechEngine.speak(`API key test failed: ${res.message}`, 'HIGH');
+    }
+  };
+
+  const handleFindTargetChange = (target: FindTargetType) => {
+    updateSetting('findTarget', target, `Target object set to ${target}`);
+  };
+
   const handleReset = () => {
     SettingsStore.reset();
     CalibrationManager.reset();
     setDevicePreset(CalibrationManager.getCurrentPreset());
+    setApiKeyInput('');
     SpeechEngine.speak('Settings reset to default values', 'CRITICAL_INTERRUPT');
   };
 
@@ -132,14 +166,14 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   isDark ? 'text-amber-400' : 'text-blue-600'
                 }`}
               >
-                Settings & Preferences
+                Settings & Intelligence
               </h2>
               <p
                 className={`text-xs ${
                   isDark ? 'text-slate-400' : 'text-slate-500'
                 }`}
               >
-                Customize spatial audio, speech rate, haptics, and appearance
+                Configure Google AI scene descriptions, assistive tools, and audio
               </p>
             </div>
           </div>
@@ -156,7 +190,182 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </button>
         </div>
 
-        {/* Section 1: Appearance & Theme Switcher */}
+        {/* Section 1: Google Gemini Multimodal AI Integration */}
+        <section
+          className={`p-4 sm:p-5 rounded-2xl border space-y-3.5 transition-colors ${
+            isDark
+              ? 'bg-slate-900/80 border-slate-800'
+              : 'bg-white border-slate-200 shadow-sm'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3
+                className={`text-base sm:text-lg font-bold flex items-center gap-2 ${
+                  isDark ? 'text-amber-400' : 'text-blue-600'
+                }`}
+              >
+                <span>🧠</span>
+                <span>Google Gemini AI (Scene Understanding)</span>
+              </h3>
+              <p
+                className={`text-xs ${
+                  isDark ? 'text-slate-400' : 'text-slate-500'
+                }`}
+              >
+                Enables two-finger scene descriptions, sign & text OCR, and door/stair finder.
+              </p>
+            </div>
+            <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+              Multimodal
+            </span>
+          </div>
+
+          {/* API Key Input */}
+          <div className="space-y-1.5">
+            <label htmlFor="gemini-key-input" className="block text-xs sm:text-sm font-semibold">
+              Google Gemini API Key
+            </label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <input
+                  id="gemini-key-input"
+                  type={showApiKey ? 'text' : 'password'}
+                  placeholder="AIzaSy..."
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  onBlur={handleApiKeySave}
+                  className={`w-full p-2.5 pr-10 rounded-xl border text-xs sm:text-sm font-mono focus:outline-none ${
+                    isDark
+                      ? 'bg-slate-950 border-slate-700 text-slate-200 focus:border-amber-400'
+                      : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-blue-600'
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-200"
+                  aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
+                >
+                  {showApiKey ? '🙈' : '👁️'}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleTestApiKey}
+                disabled={testingApiKey || !apiKeyInput.trim()}
+                className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold border transition-colors ${
+                  testingApiKey
+                    ? 'opacity-50 cursor-wait'
+                    : isDark
+                      ? 'bg-slate-800 hover:bg-slate-700 border-slate-600 text-amber-300'
+                      : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-blue-700'
+                }`}
+              >
+                {testingApiKey ? 'Testing...' : 'Test Key'}
+              </button>
+            </div>
+
+            {/* Test result status badge */}
+            {apiTestResult && (
+              <p
+                className={`text-xs font-medium ${
+                  apiTestResult.success ? 'text-emerald-500' : 'text-rose-500'
+                }`}
+              >
+                {apiTestResult.message}
+              </p>
+            )}
+
+            <p className={`text-[11px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Don't have a key? Get a free key with no credit card required at{' '}
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noreferrer"
+                className="underline font-bold text-amber-500 hover:text-amber-400"
+              >
+                aistudio.google.com
+              </a>
+              .
+            </p>
+          </div>
+
+          {/* Model Selection */}
+          <div className="space-y-1 pt-1">
+            <label htmlFor="gemini-model-select" className="block text-xs sm:text-sm font-semibold">
+              AI Vision Model
+            </label>
+            <select
+              id="gemini-model-select"
+              value={settings.geminiModel}
+              onChange={(e) =>
+                updateSetting('geminiModel', e.target.value, `AI model set to ${e.target.value}`)
+              }
+              className={`w-full p-2.5 rounded-xl border text-xs sm:text-sm font-semibold focus:outline-none ${
+                isDark
+                  ? 'bg-slate-950 border-slate-700 text-slate-200 focus:border-amber-400'
+                  : 'bg-slate-50 border-slate-300 text-slate-800 focus:border-blue-600'
+              }`}
+            >
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash (Fastest & Recommended for Navigation)</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Reliable Fallback)</option>
+            </select>
+          </div>
+        </section>
+
+        {/* Section 2: Assistive Tools & Target Finder */}
+        <section
+          className={`p-4 sm:p-5 rounded-2xl border space-y-3.5 transition-colors ${
+            isDark
+              ? 'bg-slate-900/80 border-slate-800'
+              : 'bg-white border-slate-200 shadow-sm'
+          }`}
+        >
+          <h3
+            className={`text-base sm:text-lg font-bold flex items-center gap-2 ${
+              isDark ? 'text-amber-400' : 'text-blue-600'
+            }`}
+          >
+            <span>🎯</span>
+            <span>Target Finder Mode</span>
+          </h3>
+          <p
+            className={`text-xs ${
+              isDark ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
+            Select which item VisionGuard will steer you toward using directional beacon pings.
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {FIND_TARGET_OPTIONS.map((tgt) => {
+              const active = settings.findTarget === tgt;
+              return (
+                <button
+                  key={tgt}
+                  type="button"
+                  onClick={() => handleFindTargetChange(tgt)}
+                  className={`p-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border-2 transition-all ${
+                    active
+                      ? isDark
+                        ? 'bg-amber-400 text-slate-950 border-amber-400'
+                        : 'bg-blue-600 text-white border-blue-600'
+                      : isDark
+                        ? 'bg-slate-950 text-slate-400 border-slate-800'
+                        : 'bg-slate-100 text-slate-600 border-slate-200'
+                  }`}
+                  aria-pressed={active}
+                >
+                  {tgt}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Section 3: Appearance & Theme Switcher */}
         <section
           className={`p-4 sm:p-5 rounded-2xl border transition-colors ${
             isDark
@@ -217,7 +426,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </div>
         </section>
 
-        {/* Section 2: Feedback Mode */}
+        {/* Section 4: Feedback Mode */}
         <section
           className={`p-4 sm:p-5 rounded-2xl border transition-colors ${
             isDark
@@ -233,7 +442,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               isDark ? 'text-slate-400' : 'text-slate-500'
             }`}
           >
-            Adjust which senses are engaged during your commute.
+            Adjust which senses are engaged during navigation.
           </p>
           <div className="grid grid-cols-2 gap-2.5">
             {(
@@ -269,7 +478,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </div>
         </section>
 
-        {/* Section 3: Speech Rate */}
+        {/* Section 5: Voice Speed */}
         <section
           className={`p-4 sm:p-5 rounded-2xl border transition-colors ${
             isDark
@@ -316,7 +525,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </div>
         </section>
 
-        {/* Section 4: Haptic Feedback */}
+        {/* Section 6: Vibration Haptics */}
         <section
           className={`p-4 sm:p-5 rounded-2xl border transition-colors ${
             isDark
@@ -332,7 +541,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               isDark ? 'text-slate-400' : 'text-slate-500'
             }`}
           >
-            Directional haptic strength for left, center, and right obstacles.
+            Directional pulse strength for left, center, and right obstacles.
           </p>
           <div className="grid grid-cols-4 gap-2">
             {(['OFF', 'LOW', 'NORMAL', 'HIGH'] as HapticIntensity[]).map((level) => {
@@ -360,7 +569,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
           </div>
         </section>
 
-        {/* Section 5: Camera & Detection Calibration */}
+        {/* Section 7: Camera & Sensitivity */}
         <section
           className={`p-4 sm:p-5 rounded-2xl border space-y-4 transition-colors ${
             isDark
@@ -373,7 +582,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               isDark ? 'text-amber-400' : 'text-blue-600'
             }`}
           >
-            Camera Sensitivity & Diagnostics
+            Camera Lens & Sensitivity
           </h3>
 
           {/* Camera Lens Preset */}

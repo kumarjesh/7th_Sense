@@ -126,6 +126,26 @@ export interface PerformanceMetrics {
 
 export type AppTheme = 'dark' | 'light';
 
+export type AssistiveToolMode =
+  | 'NONE'
+  | 'DESCRIBE_SCENE'
+  | 'TEXT_READER'
+  | 'LIGHT_DETECTOR'
+  | 'FIND_TARGET'
+  | 'CURRENCY';
+
+export const FIND_TARGET_OPTIONS = [
+  'door',
+  'chair',
+  'stairs',
+  'elevator',
+  'crosswalk',
+  'person',
+  'trash can',
+] as const;
+
+export type FindTargetType = typeof FIND_TARGET_OPTIONS[number];
+
 /** User-configurable settings persisted to localStorage */
 export interface AppSettings {
   theme: AppTheme;
@@ -138,6 +158,10 @@ export interface AppSettings {
   showDebugOverlay: boolean;
   safetyBriefingSeen: boolean;
   ambientStatusInterval: number; // seconds
+  geminiApiKey: string;
+  geminiModel: string;
+  lightDetectorVolume: number;
+  findTarget: FindTargetType;
 }
 
 /** Default settings */
@@ -152,6 +176,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   showDebugOverlay: false,
   safetyBriefingSeen: false,
   ambientStatusInterval: 15,
+  geminiApiKey: '',
+  geminiModel: 'gemini-2.0-flash',
+  lightDetectorVolume: 0.5,
+  findTarget: 'door',
 };
 
 // ============================================================

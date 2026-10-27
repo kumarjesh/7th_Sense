@@ -15,8 +15,13 @@ export type GestureType =
   | 'swipe-down'
   | 'swipe-left'
   | 'swipe-right'
+  | 'two-finger-tap'
   | 'two-finger-double-tap'
   | 'two-finger-long-press'
+  | 'two-finger-swipe-up'
+  | 'two-finger-swipe-down'
+  | 'two-finger-swipe-left'
+  | 'two-finger-swipe-right'
   | 'three-finger-tap';
 
 interface GestureCallbacks {
@@ -97,11 +102,20 @@ export function useGestures(
       }
 
       if (distance > SWIPE_THRESHOLD) {
-        // Swipe
-        if (Math.abs(dx) > Math.abs(dy)) {
-          onGesture(dx > 0 ? 'swipe-right' : 'swipe-left');
+        // Multi-finger or single-finger swipe
+        const isHorizontal = Math.abs(dx) > Math.abs(dy);
+        if (fingers >= 2) {
+          if (isHorizontal) {
+            onGesture(dx > 0 ? 'two-finger-swipe-right' : 'two-finger-swipe-left');
+          } else {
+            onGesture(dy > 0 ? 'two-finger-swipe-down' : 'two-finger-swipe-up');
+          }
         } else {
-          onGesture(dy > 0 ? 'swipe-down' : 'swipe-up');
+          if (isHorizontal) {
+            onGesture(dx > 0 ? 'swipe-right' : 'swipe-left');
+          } else {
+            onGesture(dy > 0 ? 'swipe-down' : 'swipe-up');
+          }
         }
         return;
       }
@@ -123,8 +137,9 @@ export function useGestures(
         if (fingers >= 2) {
           if (tapCount.current >= 2) {
             onGesture('two-finger-double-tap');
+          } else {
+            onGesture('two-finger-tap');
           }
-          // Single two-finger tap — no action currently
         } else {
           if (tapCount.current >= 2) {
             onGesture('double-tap');
