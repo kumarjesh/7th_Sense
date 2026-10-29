@@ -61,7 +61,7 @@ export function useCamera(): UseCameraReturn {
         err.name === 'NotAllowedError'
       ) {
         SpeechEngine.speak(
-          'Camera permission denied. VisionGuard requires camera access to detect obstacles.',
+          'Camera permission denied. TriNetra requires camera access to detect obstacles.',
           'HIGH',
           'WARNING'
         );

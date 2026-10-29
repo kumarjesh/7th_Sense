@@ -22,7 +22,7 @@ class SafetyManagerImpl {
 
   /** The first-run safety briefing text */
   static readonly SAFETY_BRIEFING =
-    'Welcome to VisionGuard. This app is an awareness aid only. ' +
+    'Welcome to TriNetra. This app is an awareness aid only. ' +
     'It does not replace a white cane, guide dog, or safe travel training. ' +
     'It cannot detect stairs, curbs, potholes, glass, or all obstacles. ' +
     'Always use your primary mobility aid. ' +
@@ -73,7 +73,7 @@ class SafetyManagerImpl {
     if (this.isEmergencyPaused) return;
     this.isEmergencyPaused = true;
     SpeechEngine.speak(
-      'VisionGuard paused. Tap to resume.',
+      'TriNetra paused. Tap to resume.',
       'CRITICAL_INTERRUPT',
       'CRITICAL'
     );

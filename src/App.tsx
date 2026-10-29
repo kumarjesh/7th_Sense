@@ -1,5 +1,6 @@
 // ============================================================
 // VisionGuard — Main Application (App.tsx)
+// Renamed to TriNetra — Real-Time Spatial AI Assistant
 // ============================================================
 // Orchestrates on-device AI vision, object tracking, 3D spatial sonar,
 // directional haptics, Google Gemini Multimodal Scene Intelligence,
@@ -248,7 +249,7 @@ export function App() {
       if (modelReady) {
         setUnlocked(true);
         setScanningState('ACTIVE');
-        SpeechEngine.speak('VisionGuard active. Scanning started.', 'HIGH');
+        SpeechEngine.speak('TriNetra active. Scanning started.', 'HIGH');
       } else {
         setInitProgress('Model load failed. Tap to retry.');
         SpeechEngine.speak('Failed to load vision model. Please check internet connection and retry.', 'HIGH');
@@ -350,7 +351,7 @@ export function App() {
     setActiveAssistiveTool('NONE');
     SpeechEngine.cancel();
     setScanningState('PAUSED');
-    SpeechEngine.speak('VisionGuard emergency pause. Tap screen to resume.', 'CRITICAL_INTERRUPT');
+    SpeechEngine.speak('TriNetra emergency pause. Tap screen to resume.', 'CRITICAL_INTERRUPT');
   }, []);
 
   // Flashlight toggle with spoken confirmation & browser restriction detection
@@ -610,7 +611,7 @@ export function App() {
           theme={theme}
           onDismiss={() => {
             setSafetyBriefingSeen(true);
-            SpeechEngine.speak('Safety acknowledged. VisionGuard active.', 'HIGH');
+            SpeechEngine.speak('Safety acknowledged. TriNetra active.', 'HIGH');
           }}
         />
       )}

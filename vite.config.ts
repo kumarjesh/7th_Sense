@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'VisionGuard — Spatial AI Assistant',
-        short_name: 'VisionGuard',
+        name: 'TriNetra — Spatial AI Assistant',
+        short_name: 'TriNetra',
         description: 'Real-time AI spatial awareness and obstacle navigation for the visually impaired',
         theme_color: '#000000',
         background_color: '#000000',

@@ -138,7 +138,7 @@ class GeminiVisionEngineImpl {
     this.isAnalyzing = true;
     try {
       const systemPrompt =
-        'You are VisionGuard, a real-time spatial navigation assistant for a completely blind pedestrian. ' +
+        'You are TriNetra, a real-time spatial navigation assistant for a completely blind pedestrian. ' +
         'Describe this scene in exactly 2 short, concise sentences. ' +
         'Identify walkable ground path, key obstacles, doors, and important items using clock relative directions ' +
         '(e.g., at 12 o\'clock, 2 o\'clock, 9 o\'clock) and approximate distance (e.g. 2 meters or 6 feet). ' +

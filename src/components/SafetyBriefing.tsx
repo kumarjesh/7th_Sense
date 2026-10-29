@@ -66,7 +66,7 @@ export function SafetyBriefing({ theme, onDismiss }: SafetyBriefingProps) {
                 : 'bg-rose-50 border-rose-200 text-rose-800'
             }`}
           >
-            VisionGuard is an assistive awareness aid only.
+            TriNetra is an assistive awareness aid only.
           </div>
 
           <p className={isDark ? 'text-slate-300' : 'text-slate-700'}>
@@ -89,7 +89,7 @@ export function SafetyBriefing({ theme, onDismiss }: SafetyBriefingProps) {
               ? 'bg-amber-400 hover:bg-amber-300 text-slate-950'
               : 'bg-blue-600 hover:bg-blue-700 text-white'
           }`}
-          aria-label="I understand, continue to VisionGuard navigation"
+          aria-label="I understand, continue to TriNetra navigation"
         >
           I Understand — Begin Navigation
         </button>

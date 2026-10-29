@@ -1,8 +1,8 @@
-# VisionGuard — Real-Time Spatial AI Navigation Assistant 👁️⚡
+# TriNetra (त्रिनेत्र) — Real-Time Spatial AI Navigation Assistant 👁️⚡
 
-> **An accessibility-first Progressive Web App (PWA) turning smartphone cameras into an intelligent "virtual eye" for blind and visually impaired pedestrians.**
+> **An accessibility-first Progressive Web App (PWA) turning smartphone cameras into an intelligent "third eye" for blind and visually impaired pedestrians.**
 
-VisionGuard extends the spatial awareness of pedestrians from the 1–2 meter reach of a physical white cane to 5+ meters ahead using real-time on-device computer vision, IoU object tracking, directional spatial 3D audio, and multi-pattern haptics.
+TriNetra extends the spatial awareness of pedestrians from the 1–2 meter reach of a physical white cane to 5+ meters ahead using real-time on-device computer vision, IoU object tracking, directional spatial 3D audio, and multi-pattern haptics.
 
 ---
 

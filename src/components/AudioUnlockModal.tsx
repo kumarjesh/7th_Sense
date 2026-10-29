@@ -27,7 +27,7 @@ export function AudioUnlockModal({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="VisionGuard Activation Screen. Tap anywhere to begin navigation."
+      aria-label="TriNetra Activation Screen. Tap anywhere to begin navigation."
       onClick={!isInitializing ? onUnlock : undefined}
       className={`fixed inset-0 z-50 flex flex-col items-center justify-between p-6 cursor-pointer select-none transition-colors duration-300 ${
         isDark
@@ -69,7 +69,7 @@ export function AudioUnlockModal({
       {/* Main Title */}
       <div className="w-full text-center pt-2">
         <h1 className="text-4xl sm:text-5xl font-black tracking-tight">
-          Vision<span className={isDark ? 'text-amber-400' : 'text-blue-600'}>Guard</span>
+          Tri<span className={isDark ? 'text-amber-400' : 'text-blue-600'}>Netra</span>
         </h1>
         <p
           className={`mt-2 text-sm sm:text-base max-w-sm mx-auto font-medium ${

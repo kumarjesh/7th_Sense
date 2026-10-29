@@ -345,7 +345,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
               isDark ? 'text-slate-400' : 'text-slate-500'
             }`}
           >
-            Select which item VisionGuard will steer you toward using directional beacon pings.
+            Select which item TriNetra will steer you toward using directional beacon pings.
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
