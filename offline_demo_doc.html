@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TriNetra — Offline Mode Demonstration & Evaluation Manual</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 14mm 12mm 14mm 12mm;
+      @bottom-right {
+        content: counter(page);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #1e293b;
+      background: #ffffff;
+      line-height: 1.5;
+      font-size: 10.5pt;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .header-banner {
+      background: linear-gradient(135deg, #090a0f 0%, #1e1b4b 60%, #31104b 100%);
+      color: #ffffff;
+      padding: 24px 28px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #334155;
+    }
+
+    .badge-pill {
+      display: inline-block;
+      font-size: 8pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      margin-bottom: 8px;
+    }
+
+    .title {
+      font-size: 22pt;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+      color: #ffffff;
+    }
+
+    .title span {
+      color: #f59e0b;
+    }
+
+    .subtitle {
+      font-size: 10.5pt;
+      color: #cbd5e1;
+      font-weight: 400;
+      max-width: 90%;
+    }
+
+    .meta-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 8.5pt;
+      color: #94a3b8;
+    }
+
+    h2 {
+      font-size: 13.5pt;
+      font-weight: 800;
+      color: #0f172a;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 5px;
+      margin-top: 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3 {
+      font-size: 11.5pt;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 12px;
+      margin-bottom: 6px;
+    }
+
+    p {
+      margin-bottom: 8px;
+      color: #334155;
+    }
+
+    .callout {
+      background: #f8fafc;
+      border-left: 4px solid #f59e0b;
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 12px 0;
+      border: 1px solid #e2e8f0;
+      border-left-width: 4px;
+      page-break-inside: avoid;
+    }
+
+    .callout-title {
+      font-weight: 800;
+      font-size: 9.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      color: #b45309;
+    }
+
+    .callout-green {
+      border-left-color: #10b981;
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+
+    .callout-green .callout-title {
+      color: #047857;
+    }
+
+    .callout-blue {
+      border-left-color: #2563eb;
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .callout-blue .callout-title {
+      color: #1d4ed8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 9pt;
+      page-break-inside: avoid;
+    }
+
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 8pt;
+      letter-spacing: 0.5px;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .tag-offline {
+      display: inline-block;
+      background: #dcfce7;
+      color: #15803d;
+      font-weight: 800;
+      font-size: 7.5pt;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid #86efac;
+    }
+
+    .tag-cloud {
+      display: inline-block;
+      background: #fee2e2;
+      color: #b91c1c;
+      font-weight: 800;
+      font-size: 7.5pt;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid #fca5a5;
+    }
+
+    .steps-list {
+      margin: 10px 0 14px 18px;
+    }
+
+    .steps-list li {
+      margin-bottom: 8px;
+      padding-left: 4px;
+    }
+
+    .steps-list strong {
+      color: #0f172a;
+    }
+
+    .script-box {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 10px;
+      font-family: inherit;
+      border: 1px solid #334155;
+      margin: 14px 0;
+      page-break-inside: avoid;
+    }
+
+    .script-box p {
+      color: #e2e8f0;
+      font-style: italic;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .script-box .action-note {
+      color: #fbbf24;
+      font-style: normal;
+      font-weight: 700;
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .architecture-diagram {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 14px;
+      margin: 14px 0;
+      font-family: monospace;
+      font-size: 8.5pt;
+      page-break-inside: avoid;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0;
+      page-break-inside: avoid;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .card h4 {
+      font-size: 10pt;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .footer {
+      margin-top: 30px;
+      padding-top: 10px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 8pt;
+      color: #64748b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== HEADER ==================== -->
+  <div class="header-banner">
+    <div class="badge-pill">Autonomous Edge AI • Assistive Technology</div>
+    <div class="title">Tri<span>Netra</span> (त्रिनेत्र)</div>
+    <div class="subtitle">Complete Offline Mode Demonstration Guide, Feature Matrix, and Evaluation Pitch Script</div>
+    <div class="meta-bar">
+      <span><strong>Architecture:</strong> Edge PWA + On-Device WebGL TF.js</span>
+      <span><strong>Target:</strong> Blind & Visually Impaired Pedestrians</span>
+      <span><strong>Evaluation Standard:</strong> Zero-Network Safety Verification</span>
+    </div>
+  </div>
+
+  <!-- ==================== SECTION 1 ==================== -->
+  <h2>1. Executive Summary & The Offline Imperative</h2>
+  <p>
+    For a visually impaired person, walking autonomy cannot depend on an internet connection. Pedestrians routinely enter <strong>underground subway stations, basement elevators, steel-reinforced transit tunnels, building corridors, and rural roads</strong> where cellular data drops completely.
+  </p>
+  <p>
+    If an assistive vision aid relies on sending camera frames to a cloud server to calculate obstacle distances, the user is rendered <strong>electronically blind and unsafe the instant signal is lost</strong>.
+  </p>
+
+  <div class="callout callout-green">
+    <div class="callout-title">The TriNetra Architectural Guarantee</div>
+    <p>
+      TriNetra uses a <strong>Dual-Layer Perception Architecture</strong>. All safety-critical spatial perception (real-time computer vision, 3D binaural audio radar, looming hazard detection, acoustic target beacon, and tactile gestures) operates <strong>100% on-device on the smartphone’s local GPU and audio hardware</strong>. Zero cloud requests are required for pedestrian mobility.
+    </p>
+  </div>
+
+  <!-- ==================== SECTION 2 ==================== -->
+  <h2>2. Rule 0: First-Time Warmup & Service Worker Pre-Caching</h2>
+  <p>
+    Before taking the phone into offline mode, perform a <strong>one-time setup</strong> while connected to Wi-Fi or cellular data:
+  </p>
+  <ol class="steps-list">
+    <li><strong>Open the App Once with Internet:</strong> Visit the TriNetra PWA URL in Google Chrome (Android) or Safari (iOS).</li>
+    <li><strong>Automatic Model Download:</strong> The PWA Service Worker (powered by Workbox) downloads and permanently precaches all HTML, CSS, JavaScript, and the lightweight <strong>2.5 MB TensorFlow.js MobileNetV2</strong> model weights into the browser's persistent IndexedDB and Cache Storage.</li>
+    <li><strong>Install as PWA:</strong> Tap the browser menu and select <strong>"Add to Home Screen"</strong> or <strong>"Install App"</strong>. This pins TriNetra as a standalone full-screen native mobile application.</li>
+  </ol>
+
+  <!-- ==================== SECTION 3 ==================== -->
+  <h2>3. Live Airplane Mode Demonstration (Step-by-Step)</h2>
+  <p>
+    Follow this exact sequence in front of judges, evaluators, or test audiences to conclusively prove offline autonomy:
+  </p>
+
+  <ol class="steps-list">
+    <li>
+      <strong>Step 1: Enter 100% Airplane Mode in Full View of Evaluators:</strong><br/>
+      Swipe down the phone's notification or control center. Turn on <strong>Airplane Mode (✈️)</strong>. Explicitly turn off both <strong>Wi-Fi</strong> and <strong>Mobile Data</strong>. Hold up the phone to show zero cellular signal and the active airplane icon.
+    </li>
+    <li>
+      <strong>Step 2: Relaunch or Refresh TriNetra:</strong><br/>
+      Close the browser or tap the home screen TriNetra icon. The application loads instantly with zero network errors (no offline "dinosaur" screen).
+    </li>
+    <li>
+      <strong>Step 3: Tap to Initialize Navigation:</strong><br/>
+      Tap anywhere on the display to unlock the Web Audio API and WebRTC camera. Hear the phone's on-board text-to-speech engine announce:<br/>
+      <em>🗣️ "TriNetra active. Scanning started."</em>
+    </li>
+    <li>
+      <strong>Step 4: Demonstrate Live Real-Time Spatial Sonar:</strong><br/>
+      Hold an obstacle (a chair, backpack, or evaluator's hand) 1 to 2 meters ahead of the phone. Point out the sub-100ms response: the 3D acoustic radar chimes dynamically in stereo headphones, scaling frequency from 440 Hz to 880 Hz as the obstacle draws nearer.
+    </li>
+    <li>
+      <strong>Step 5: Demonstrate Target Finder (Seek Object):</strong><br/>
+      Perform a <strong>Two-Finger Swipe Right</strong>. The app announces: <em>"Target set to chair. Point camera to locate."</em> Slowly sweep the phone camera across the room. When pointing directly at a chair, hear the high-pitch 988 Hz acoustic beacon tone chime rapidly in both ears.
+    </li>
+    <li>
+      <strong>Step 6: Demonstrate Light Tone Sonification:</strong><br/>
+      Perform a <strong>Two-Finger Swipe Down</strong>. Aim the camera toward a window or room light. The audio pitch rises continuously as illumination intensity increases.
+    </li>
+    <li>
+      <strong>Step 7: Demonstrate Hardware Controls & Telemetry:</strong><br/>
+      <strong>Swipe Up</strong> to toggle the camera LED flashlight. <strong>Swipe Down</strong> to hear status: <em>"Full audio mode. Running at 4 frames per second. Path clear."</em>
+    </li>
+  </ol>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== SECTION 4 ==================== -->
+  <h2>4. Comprehensive Feature Matrix: Offline vs. Online</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 28%;">Feature / Capability</th>
+        <th style="width: 18%;">Offline Status</th>
+        <th style="width: 54%;">Underlying Engine & Execution Mechanism</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Obstacle Detection</strong></td>
+        <td><span class="tag-offline">100% OFFLINE</span></td>
+        <td>TensorFlow.js + MobileNet-V2 runs locally on smartphone WebGL GPU. Zero frames sent over internet.</td>
+      </tr>
+      <tr>
+        <td><strong>3D Binaural Sonar Audio</strong></td>
+        <td><span class="tag-offline">100% OFFLINE</span></td>
+        <td>Synthesized mathematically in real time via Web Audio API <code>PannerNode</code> and oscillators on phone DSP.</td>
+      </tr>
+      <tr>
+        <td><strong>Looming & Collision Alerts</strong></td>
+        <td><span class="tag-offline">100% OFFLINE</span></td>
+        <td>Calculated locally via bounding-box growth rate formulas (<code>Δarea / Δt > 15%/sec</code>).</td>
+      </tr>
+      <tr>
+        <td><strong>Target Finder (Seek Object)</strong></td>
+        <td><span class="tag-offline">100% OFFLINE</span></td>
+        <td>Matches tracked COCO-SSD classes locally (chairs, doors, stairs, persons) and emits acoustic beacon chimes.</td>
+      </tr>
+      <tr>
+        <td><strong>Light Tone Detector</strong></td>
+        <td><span class="tag-offline">100% OFFLINE</span></td>
+        <td>Samples raw pixel luminance directly from local HTML5 canvas; modulates frequency locally.</td>
+      </tr>
+      <tr>
+        <td><strong>LED Flashlight (Torch)</strong></td>
+        <td><span class="tag-offline">100% OFFLINE</span></td>
+        <td>Operates rear camera hardware LED via <code>MediaStreamTrack.applyConstraints</code>.</td>
+      </tr>
+      <tr>
+        <td><strong>Blind-First Touch Gestures</strong></td>
+        <td><span class="tag-offline">100% OFFLINE</span></td>
+        <td>Centroid multi-touch tracking and <code>navigator.vibrate</code> haptics run entirely on device touch hardware.</td>
+      </tr>
+      <tr>
+        <td><strong>Audio Mode Switching</strong></td>
+        <td><span class="tag-offline">100% OFFLINE</span></td>
+        <td>Cycles Full, Voice-Only, Sonar-Only, and Emergency-Only modes via local state store.</td>
+      </tr>
+      <tr>
+        <td><strong>Emergency Pause Kill-Switch</strong></td>
+        <td><span class="tag-offline">100% OFFLINE</span></td>
+        <td>Three-finger tap immediately halts all audio oscillators and video inference loops locally.</td>
+      </tr>
+      <tr>
+        <td><strong>Gemini Scene Narrator</strong></td>
+        <td><span class="tag-cloud">NETWORK REQUIRED</span></td>
+        <td>Sends high-resolution snapshot to Google Gemini Flash API for natural language paragraph description.</td>
+      </tr>
+      <tr>
+        <td><strong>Verbatim OCR Document Reader</strong></td>
+        <td><span class="tag-cloud">NETWORK REQUIRED</span></td>
+        <td>Sends 1600px frame to cloud Multimodal GenAI to transcribe books, receipts, and medicine labels.</td>
+      </tr>
+      <tr>
+        <td><strong>Banknote / Currency Reader</strong></td>
+        <td><span class="tag-cloud">NETWORK REQUIRED</span></td>
+        <td>Sends 1600px frame to Gemini Vision to verify denominations and fine currency security features.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ==================== SECTION 5 ==================== -->
+  <h2>5. Architectural Isolation Test (Cloud Fallback)</h2>
+  <p>
+    An essential mark of robust engineering is <strong>graceful degradation</strong>. While in Airplane Mode, perform a <strong>Two-Finger Tap</strong> (Gemini Scene Description) or <strong>Two-Finger Double Tap</strong> (Banknote Reader).
+  </p>
+  <div class="callout callout-blue">
+    <div class="callout-title">Observed Behavior & Evaluator Explanation</div>
+    <p>
+      The app attempts the cloud call, immediately catches the fetch error, and speaks: <em>"Scene description failed. Please check internet connection."</em><br/>
+      <strong>Key Point for Judges:</strong> The obstacle avoidance radar, spatial audio pings, and safety alerts continue executing in the background without freezing, crashing, or stuttering.
+    </p>
+  </div>
+
+  <!-- ==================== SECTION 6 ==================== -->
+  <h2>6. The 60-Second Evaluator Presentation Script</h2>
+  <div class="script-box">
+    <div class="action-note">[STEP 1: Hold up smartphone showing Airplane Mode active]</div>
+    <p>
+      "Judges, imagine a visually impaired student entering an underground metro station, an elevator, or a rural road where cellular reception drops completely. If an assistive walking aid relies on cloud servers, the user is left completely stranded and blind. That is why TriNetra was engineered with an offline-first Edge AI architecture."
+    </p>
+    <div class="action-note">[STEP 2: Relaunch TriNetra and tap the screen to activate]</div>
+    <p>
+      "Notice that my phone is in 100% Airplane Mode—zero Wi-Fi, zero mobile data. When I launch TriNetra, our Service Worker boots the entire app from local cache in less than one second. The camera stream, the TensorFlow.js neural network running on the phone's WebGL GPU, our 3D binaural spatial sonar, and our tactile gesture surface are executing 100% on this smartphone."
+    </p>
+    <div class="action-note">[STEP 3: Walk toward a chair or hold a hand 1 meter in front of camera]</div>
+    <p>
+      "As an obstacle enters the frame, the user hears sub-100 millisecond directional audio pings in their ears, warning them of collision hazards with zero server latency, complete privacy, and zero data cost. While cloud AI provides detailed document reading when internet is available, their fundamental walking safety never depends on a cell tower."
+    </p>
+  </div>
+
+  <div class="footer">
+    <span>TriNetra (त्रिनेत्र) • Spatial AI Assistive Technology</span>
+    <span>Page 2 of 2 • Confidential Submission Document</span>
+  </div>
+
+</body>
+</html>
