@@ -93,6 +93,7 @@ class VisionPipelineImpl {
       cancelAnimationFrame(this.animFrameId);
       this.animFrameId = null;
     }
+    TrackingManager.reset();
   }
 
   /** Check if pipeline is currently running */
@@ -142,6 +143,9 @@ class VisionPipelineImpl {
         20, // maxNumBoxes
         confidenceThreshold
       );
+
+      // Abort immediately if paused or stopped while detection was in flight
+      if (!this.isRunning) return;
 
       const inferenceEnd = performance.now();
       PerformanceMonitor.recordInference(inferenceEnd - startTime);

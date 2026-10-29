@@ -96,10 +96,19 @@ export function App() {
     captureFrame,
   } = useCamera();
   const { acquire: acquireWakeLock, release: releaseWakeLock } = useWakeLock();
-  const { isOn: torchOn, isAvailable: torchAvailable, toggle: toggleTorch } =
-    useTorch(stream);
+  const {
+    isOn: torchOn,
+    isAvailable: torchAvailable,
+    isRestrictedByBrowser: torchRestricted,
+    toggle: toggleTorch,
+    checkAvailability: checkTorchAvailable,
+  } = useTorch(stream);
 
-  // Apply theme to document element
+  // Apply theme to document element and initialize background telemetry
+  useEffect(() => {
+    PerformanceMonitor.init();
+  }, []);
+
   useEffect(() => {
     if (theme === 'light') {
       document.documentElement.classList.add('light');
@@ -262,6 +271,7 @@ export function App() {
       TextReaderEngine.stop();
       TargetFinderEngine.stop();
       setActiveAssistiveTool('NONE');
+      SpeechEngine.cancel();
       setScanningState('PAUSED');
       SpeechEngine.speak('Scanning paused', 'HIGH');
     } else {
@@ -278,19 +288,33 @@ export function App() {
   }, []);
 
   // Announce Status (Mode, Battery, FPS)
-  const announceStatus = useCallback(() => {
+  const announceStatus = useCallback(async () => {
+    let batteryText = '';
+    try {
+      if (typeof navigator !== 'undefined' && 'getBattery' in navigator) {
+        const b = await (navigator as any).getBattery();
+        if (typeof b?.level === 'number') {
+          batteryText = `Battery ${Math.round(b.level * 100)} percent. `;
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
     const metrics = PerformanceMonitor.getMetrics();
-    const batteryText =
-      metrics.batteryPct !== null
-        ? `Battery ${Math.round(metrics.batteryPct)} percent.`
-        : '';
-    const fpsText = `Running at ${metrics.effectiveFps} frames per second.`;
-    const modeText = `Mode is ${verbosityMode.replace(/_/g, ' ').toLowerCase()}.`;
+    if (!batteryText && metrics.batteryPct !== null) {
+      batteryText = `Battery ${Math.round(metrics.batteryPct)} percent. `;
+    }
+
+    const fps = metrics.effectiveFps > 0 ? metrics.effectiveFps : 4;
+    const fpsText = `Running at ${fps} frames per second. `;
+    const modeText = `Mode is ${verbosityMode.replace(/_/g, ' ').toLowerCase()}. `;
     const toolText =
       activeAssistiveTool !== 'NONE'
-        ? `Active tool: ${activeAssistiveTool.replace(/_/g, ' ').toLowerCase()}.`
+        ? `Active tool: ${activeAssistiveTool.replace(/_/g, ' ').toLowerCase()}. `
         : '';
-    const statusText = `${modeText} ${toolText} ${batteryText} ${fpsText} Hazard status is ${hazardStatus.toLowerCase()}.`;
+    const batteryAnnouncement = batteryText || 'Battery percentage unavailable on this browser. ';
+    const statusText = `${modeText}${toolText}${batteryAnnouncement}${fpsText}Hazard status is ${hazardStatus.toLowerCase()}.`;
 
     SpeechEngine.speak(statusText, 'HIGH');
   }, [verbosityMode, activeAssistiveTool, hazardStatus]);
@@ -329,23 +353,28 @@ export function App() {
     SpeechEngine.speak('VisionGuard emergency pause. Tap screen to resume.', 'CRITICAL_INTERRUPT');
   }, []);
 
-  // Flashlight toggle with spoken confirmation
+  // Flashlight toggle with spoken confirmation & browser restriction detection
   const handleTorchToggle = useCallback(async () => {
-    if (!torchAvailable) {
-      SpeechEngine.speak('Flashlight not available on this camera', 'MEDIUM');
+    const isReady = checkTorchAvailable();
+    if (!isReady) {
+      if (torchRestricted) {
+        SpeechEngine.speak('Flashlight is restricted by your browser. iOS Safari blocks web flashlight access.', 'HIGH');
+      } else {
+        SpeechEngine.speak('Flashlight not available on this camera or browser.', 'HIGH');
+      }
       return;
     }
-    await toggleTorch();
+    const nextState = await toggleTorch();
     SpeechEngine.speak(
-      !torchOn ? 'Flashlight on' : 'Flashlight off',
+      nextState ? 'Flashlight on' : 'Flashlight off',
       'HIGH'
     );
-  }, [torchAvailable, toggleTorch, torchOn]);
+  }, [checkTorchAvailable, torchRestricted, toggleTorch]);
 
   // 1. Describe Scene (Google Gemini Multimodal AI)
   const handleDescribeScene = useCallback(async () => {
     if (isAnalyzingScene) return;
-    const frame = captureFrame(1024, 0.85);
+    const frame = captureFrame(1600, 0.95);
     if (!frame) {
       SpeechEngine.speak('Camera not ready for scene description.', 'HIGH');
       return;
@@ -377,7 +406,7 @@ export function App() {
     } else {
       LightDetectorEngine.stop();
       TargetFinderEngine.stop();
-      TextReaderEngine.start(() => captureFrame(1024, 0.85));
+      TextReaderEngine.start(() => captureFrame(1600, 0.95));
       setActiveAssistiveTool('TEXT_READER');
     }
   }, [activeAssistiveTool, captureFrame]);
@@ -421,7 +450,7 @@ export function App() {
   // 5. Read Currency
   const handleTriggerCurrency = useCallback(async () => {
     if (isReadingCurrency) return;
-    const frame = captureFrame(1024, 0.85);
+    const frame = captureFrame(1600, 0.95);
     if (!frame) {
       SpeechEngine.speak('Camera not ready for currency reading.', 'HIGH');
       return;

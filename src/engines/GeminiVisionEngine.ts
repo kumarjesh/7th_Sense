@@ -166,12 +166,18 @@ class GeminiVisionEngineImpl {
 
     this.isAnalyzing = true;
     try {
-      const prompt =
-        'Transcribe all legible text, room numbers, labels, signs, or warnings in this image. ' +
-        'Return ONLY the transcribed text in logical reading order. ' +
-        'If there is no text or it is unreadable, reply exactly with: "No text detected."';
+      const systemPrompt =
+        'You are an expert OCR transcription engine for the visually impaired. ' +
+        'Transcribe ONLY the exact visible printed and handwritten text in this image verbatim. ' +
+        'Preserve line breaks, names, room numbers, labels, signs, dates, and currency values accurately. ' +
+        'Do not describe the scene, do not paraphrase, and do not add conversational filler. ' +
+        'If no text is visible or legible, reply exactly with: "No text detected."';
 
-      return await this.callGemini(prompt, imageBase64);
+      return await this.callGemini(
+        'Transcribe all text in this image verbatim.',
+        imageBase64,
+        systemPrompt
+      );
     } finally {
       this.isAnalyzing = false;
     }

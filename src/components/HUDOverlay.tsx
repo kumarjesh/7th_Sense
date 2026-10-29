@@ -194,6 +194,8 @@ export function HUDOverlay({
             <button
               type="button"
               onClick={onTriggerDescribe}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
               disabled={isAnalyzingScene}
               className={`pointer-events-auto px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm transition-all active:scale-95 flex items-center gap-1.5 ${
                 isAnalyzingScene
@@ -214,6 +216,8 @@ export function HUDOverlay({
             <button
               type="button"
               onClick={onToggleTextReader}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
               className={`pointer-events-auto px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm transition-all active:scale-95 flex items-center gap-1.5 ${
                 activeAssistiveTool === 'TEXT_READER'
                   ? 'bg-blue-600 text-white border-blue-500'
@@ -233,6 +237,8 @@ export function HUDOverlay({
             <button
               type="button"
               onClick={onToggleLightDetector}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
               className={`pointer-events-auto px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm transition-all active:scale-95 flex items-center gap-1.5 ${
                 activeAssistiveTool === 'LIGHT_DETECTOR'
                   ? 'bg-amber-400 text-slate-950 border-amber-300'
@@ -256,6 +262,8 @@ export function HUDOverlay({
             <button
               type="button"
               onClick={onCycleFindTarget}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
               className={`pointer-events-auto px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm transition-all active:scale-95 flex items-center gap-1.5 ${
                 activeAssistiveTool === 'FIND_TARGET'
                   ? 'bg-emerald-600 text-white border-emerald-500'
@@ -270,11 +278,13 @@ export function HUDOverlay({
             </button>
           )}
 
-          {/* Cash / Currency Reader */}
+          {/* Cash / Banknote Reader */}
           {onTriggerCurrency && (
             <button
               type="button"
               onClick={onTriggerCurrency}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
               disabled={isReadingCurrency}
               className={`pointer-events-auto px-3 py-1.5 rounded-full text-xs font-extrabold border shadow-sm transition-all active:scale-95 flex items-center gap-1.5 ${
                 isReadingCurrency
@@ -286,7 +296,7 @@ export function HUDOverlay({
               title="Two-finger double-tap to read banknote or currency"
             >
               <span>💵</span>
-              <span>{isReadingCurrency ? 'Reading...' : 'Cash'}</span>
+              <span>{isReadingCurrency ? 'Reading...' : 'Banknote'}</span>
             </button>
           )}
         </div>
